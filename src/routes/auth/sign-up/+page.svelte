@@ -58,9 +58,9 @@
 			<ChevronRight size={16} />
 		</button>
 
-		<div class="flex gap-1">
+		<a class="flex gap-1 w-fit hover:underline" href="/auth/sign-in">
 			<p class="text-gray-500">Already have an account?</p>
-			<a href="/auth/sign-in" class="font-bold">Sign in</a>
-		</div>
+			<p class="font-bold">Sign in</p>
+		</a>
 	</div>
 </main>

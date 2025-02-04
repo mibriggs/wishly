@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lock, Plus, Share2 } from 'lucide-svelte';
+	import { Lock, Plus, Share2, Trash2 } from 'lucide-svelte';
 
 	let lists: number = $state(0);
 </script>
@@ -19,6 +19,9 @@
 			<button class="rounded-md border-2 px-2 py-1 shadow-sm">
 				<Share2 size="20" />
 			</button>
+            <button class="rounded-md border-2 px-2 py-1 shadow-sm bg-red-500 text-white border-red-600">
+                <Trash2 size="20" />
+            </button>
 		</div>
 	</div>
 {/snippet}

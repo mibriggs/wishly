@@ -9,6 +9,7 @@ export default defineConfig({
 		url: process.env.DATABASE_URL
 	},
 
+	out: './migrations',
 	verbose: true,
 	strict: true,
 	dialect: 'postgresql'

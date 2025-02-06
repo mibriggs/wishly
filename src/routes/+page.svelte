@@ -11,8 +11,8 @@
 	let isModalOpen: boolean = $state(false);
 	let clickedWishlist: string = $state('');
 
-	const submitDeleteWishlist: SubmitFunction = ({ formData, action, cancel }) => {
-		return async ({ result, update }) => {
+	const submitDeleteWishlist: SubmitFunction = () => {
+		return async ({ update }) => {
 			modal.clear();
 			await update();
 		};

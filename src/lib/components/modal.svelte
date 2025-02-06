@@ -13,7 +13,6 @@
 
 	let modal: HTMLDialogElement;
 	let isClosing: boolean = $state(false);
-	// let scrollPosition: number = $state(0);
 
 	$effect(() => {
 		modal.addEventListener('click', closeWithOutsideTap);
@@ -29,20 +28,6 @@
 		closeModal();
 	}
 
-	// $effect(() => {
-	// 	if (isOpen) {
-	// 		scrollPosition = window.scrollY;
-	// 		document.body.style.position = 'fixed';
-	// 		document.body.style.top = `-${scrollPosition}px`;
-	// 		document.body.style.overflow = 'hidden';
-	// 	} else {
-	// 		document.body.style.overflow = '';
-	// 		document.body.style.position = '';
-	// 		document.body.style.top = '';
-	// 		window.scrollTo(0, scrollPosition);
-	// 	}
-	// });
-
 	const closeWithOutsideTap = (event: MouseEvent) => {
 		const target = event.target;
 		if (target instanceof HTMLElement && target.nodeName === 'DIALOG') {
@@ -53,7 +38,6 @@
 	const closeModal = () => {
 		isClosing = true;
 		closeModalHelper();
-		// modal.addEventListener('animationend', closeModalHelper, { once: true });
 		onModalClose();
 	};
 

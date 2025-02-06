@@ -17,7 +17,7 @@
 		{/each}
 	{/if}
 	<button
-		class="mt-4 flex items-center justify-center gap-1 rounded-md bg-black px-4 py-1 text-neutral-100"
+		class="mt-4 flex select-none items-center justify-center gap-1 rounded-md bg-black px-4 py-1 text-neutral-100"
 		onclick={() => (isModalOpen = true)}
 	>
 		<Plus size={16} />

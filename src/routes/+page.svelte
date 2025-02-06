@@ -7,18 +7,19 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data }: { data: PageData } = $props();
-	let modal: any;
+	let modal: Modal;
 	let isModalOpen: boolean = $state(false);
 	let clickedWishlist: string = $state('');
 
 	const submitDeleteWishlist: SubmitFunction = () => {
 		return async ({ update }) => {
-			modal.clear();
+			modal.close();
 			await update();
 		};
 	};
 </script>
 
+<!-- disable locking while form action runs? -->
 {#snippet wishlistComponent(wishlist: Wishlist)}
 	<div class="flex h-44 w-[312px] flex-col justify-between rounded-lg bg-white pl-4 shadow-sm">
 		<div class="p-1">
@@ -27,32 +28,37 @@
 		</div>
 
 		<div class="flex items-center gap-3 pb-4">
-			<a href={`/wishlist/${wishlist.id}`} class="rounded-md border-2 px-2 py-1 shadow-sm">Expand</a
+			<a
+				href={`/wishlist/${wishlist.id}`}
+				class="select-none rounded-md border-2 px-2 py-1 shadow-sm">Expand</a
 			>
 			<form method="POST" class="w-fit" use:enhance>
-				<button class="rounded-md border-2 px-2 py-1 shadow-sm" formaction="?/lockWishlist">
+				<button
+					class="select-none rounded-md border-2 px-2 py-1 shadow-sm"
+					formaction="?/lockWishlist"
+				>
 					{#if wishlist.isLocked}
 						<Lock size="20" />
 					{:else}
 						<LockOpen size="20" />
 					{/if}
 				</button>
-				<button class="rounded-md border-2 px-2 py-1 shadow-sm" type="button">
-					<Share2 size="20" />
-				</button>
-				<button
-					class="rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm"
-					type="button"
-					onclick={() => {
-						isModalOpen = true;
-						clickedWishlist = wishlist.id;
-					}}
-				>
-					<Trash2 size="20" />
-				</button>
 				<input class="hidden" name="wishlistId" value={wishlist.id} />
 				<input class="hidden" name="isLocked" value={wishlist.isLocked} />
 			</form>
+			<button class="select-none rounded-md border-2 px-2 py-1 shadow-sm" type="button">
+				<Share2 size="20" />
+			</button>
+			<button
+				class="select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm"
+				type="button"
+				onclick={() => {
+					isModalOpen = true;
+					clickedWishlist = wishlist.id;
+				}}
+			>
+				<Trash2 size="20" />
+			</button>
 		</div>
 	</div>
 {/snippet}
@@ -62,10 +68,10 @@
 		class="flex h-44 w-[312px] flex-col justify-center rounded-lg border-2 border-dashed bg-blue-100 shadow-sm group-disabled:bg-neutral-300"
 	>
 		<div
-			class="gap- flex items-center justify-center font-bold text-blue-700 group-disabled:text-neutral-500"
+			class="gap- flex select-none items-center justify-center font-bold text-blue-700 group-disabled:text-neutral-500"
 		>
 			<Plus size={20} />
-			<p>Create New List</p>
+			<p class="select-none">Create New List</p>
 		</div>
 	</div>
 {/snippet}
@@ -97,7 +103,7 @@
 		<div class="flex flex-col items-center gap-3">
 			<button
 				class="flex size-9 items-center justify-center self-end rounded-full bg-stone-200"
-				onclick={() => modal.clear()}
+				onclick={() => modal.close()}
 			>
 				&times;
 			</button>
@@ -108,11 +114,11 @@
 				</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
-				<button class="rounded-md border-2 border-black px-4 py-2" onclick={() => modal.clear()}
+				<button class="rounded-md border-2 border-black px-4 py-2" onclick={() => modal.close()}
 					>Cancel</button
 				>
 				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
-					<button class="rounded-md text-red-500 px-4 py-2 bg-red-100">Delete</button>
+					<button class="rounded-md bg-red-100 px-4 py-2 text-red-500">Delete</button>
 					<input class="hidden" name="wishlistId" value={clickedWishlist} />
 				</form>
 			</div>

@@ -24,7 +24,7 @@
 		}
 	});
 
-	export function clear() {
+	export function close() {
 		closeModal();
 	}
 

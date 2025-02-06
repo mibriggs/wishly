@@ -3,8 +3,20 @@
 	import type { PageData } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
+	import Modal from '$lib/components/modal.svelte';
+	import type { SubmitFunction } from '@sveltejs/kit';
 
 	let { data }: { data: PageData } = $props();
+	let modal: any;
+	let isModalOpen: boolean = $state(false);
+	let clickedWishlist: string = $state('');
+
+	const submitDeleteWishlist: SubmitFunction = ({ formData, action, cancel }) => {
+		return async ({ result, update }) => {
+			modal.clear();
+			await update();
+		};
+	};
 </script>
 
 {#snippet wishlistComponent(wishlist: Wishlist)}
@@ -29,13 +41,17 @@
 					<Share2 size="20" />
 				</button>
 				<button
-					formaction="?/deleteWishlist"
 					class="rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm"
+					type="button"
+					onclick={() => {
+						isModalOpen = true;
+						clickedWishlist = wishlist.id;
+					}}
 				>
 					<Trash2 size="20" />
 				</button>
-				<input class="hidden" name="wishlistId" id="wishlistId" value={wishlist.id} />
-                <input class="hidden" name="isLocked" id="isLocked" value={wishlist.isLocked} />
+				<input class="hidden" name="wishlistId" value={wishlist.id} />
+				<input class="hidden" name="isLocked" value={wishlist.isLocked} />
 			</form>
 		</div>
 	</div>
@@ -59,11 +75,7 @@
 <main
 	class="grid grid-cols-1 items-center justify-center gap-4 p-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 >
-	{#await data.wishlists}
-		<button class="group w-fit" disabled>
-			{@render addMore()}
-		</button>
-	{:then wishlists}
+	{#await data.wishlists then wishlists}
 		{#each wishlists as wishlist (wishlist.id)}
 			{@render wishlistComponent(wishlist)}
 		{/each}
@@ -74,4 +86,36 @@
 			</button>
 		</form>
 	{/await}
+
+	<Modal
+		id="delete-wishlist-modal"
+		isOpen={isModalOpen}
+		onModalClose={() => (isModalOpen = !isModalOpen)}
+		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+		bind:this={modal}
+	>
+		<div class="flex flex-col items-center gap-3">
+			<button
+				class="flex size-9 items-center justify-center self-end rounded-full bg-stone-200"
+				onclick={() => modal.clear()}
+			>
+				&times;
+			</button>
+			<span class="flex flex-col items-center justify-center gap-1">
+				<p class="text-2xl font-bold">Are you sure?</p>
+				<p class="text-md text-center text-neutral-500">
+					Are you sure you want to delete this item? This action cannot be undone.
+				</p>
+			</span>
+			<div class="flex items-center justify-center gap-2">
+				<button class="rounded-md border-2 border-black px-4 py-2" onclick={() => modal.clear()}
+					>Cancel</button
+				>
+				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
+					<button class="rounded-md text-red-500 px-4 py-2 bg-red-100">Delete</button>
+					<input class="hidden" name="wishlistId" value={clickedWishlist} />
+				</form>
+			</div>
+		</div>
+	</Modal>
 </main>

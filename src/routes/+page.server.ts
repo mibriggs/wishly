@@ -43,13 +43,16 @@ export const actions = {
 		};
 	},
 
-    lockWishlist: async (event) => {
+	lockWishlist: async (event) => {
 		const formData = await event.request.formData();
 		const wishlistId = formData.get('wishlistId');
-        const isLocked = formData.get('isLocked');
+		const isLocked = formData.get('isLocked');
 
 		if (wishlistId !== null && isLocked !== null) {
-			const lockedWishlist = await WishlistService.updateWishlistLock(wishlistId.toString(), isLocked === 'true');
+			const lockedWishlist = await WishlistService.updateWishlistLock(
+				wishlistId.toString(),
+				isLocked === 'true'
+			);
 			const succeeded = lockedWishlist.length === 0 ? false : true;
 			return {
 				success: succeeded,
@@ -60,5 +63,5 @@ export const actions = {
 			success: false,
 			wishlist: []
 		};
-	},
+	}
 } satisfies Actions;

@@ -44,7 +44,7 @@ export class WishlistService {
 		return wishlist;
 	}
 
-    static async updateWishlistLock(wishlistId: string, oldLockState: boolean) {
+	static async updateWishlistLock(wishlistId: string, oldLockState: boolean) {
 		const wishlist: Wishlist[] = await db
 			.update(wishlistTable)
 			.set({ isLocked: !oldLockState, updatedAt: sql`NOW()` })
@@ -52,8 +52,6 @@ export class WishlistService {
 			.returning();
 		return wishlist;
 	}
-
-	// static async deleteWishList(wishlistId: string)
 	// static async addWishlistItem()
 	// static async updateWishlist()
 }

@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Wishlist } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/wishlist.service';
+import { WishlistItemsService } from '$lib/server/db/items.service';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -19,7 +20,9 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		throw redirect(303, '/');
 	}
 
+	const items = await WishlistItemsService.findByWishlistId(params.id);
 	return {
-		wishlist: wishlist[0]
+		wishlist: wishlist[0],
+		items: items
 	};
 };

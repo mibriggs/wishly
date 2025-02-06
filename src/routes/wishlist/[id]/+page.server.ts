@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Wishlist } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/wishlist.service';
@@ -26,3 +26,11 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 		items: items
 	};
 };
+
+
+export const actions = {
+    createNewItem: async (event) => {
+        const formData = await event.request.formData();
+        console.log(formData);
+    },
+} satisfies Actions;

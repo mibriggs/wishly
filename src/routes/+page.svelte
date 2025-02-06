@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Lock, LockOpen, Plus, Share2, Trash2 } from 'lucide-svelte';
+	import { Lock, LockOpen, Plus, Share2, Trash2, TriangleAlert } from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
@@ -107,10 +107,13 @@
 			>
 				&times;
 			</button>
+			<span class="rounded-md bg-red-100 p-3 text-red-500">
+				<TriangleAlert />
+			</span>
 			<span class="flex flex-col items-center justify-center gap-1">
 				<p class="text-2xl font-bold">Are you sure?</p>
 				<p class="text-md text-center text-neutral-500">
-					Are you sure you want to delete this item? This action cannot be undone.
+					Are you sure you want to delete this wishlist? This action cannot be undone.
 				</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
@@ -118,7 +121,9 @@
 					>Cancel</button
 				>
 				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
-					<button class="rounded-md bg-red-100 px-4 py-2 text-red-500">Delete</button>
+					<button class="rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500"
+						>Delete</button
+					>
 					<input class="hidden" name="wishlistId" value={clickedWishlist} />
 				</form>
 			</div>

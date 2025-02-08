@@ -1,6 +1,6 @@
 import { db } from '.';
-import { wishlistTable, type Wishlist } from './schema';
-import { and, eq, not, sql } from 'drizzle-orm';
+import { wishlistItemTable, wishlistTable, type Wishlist } from './schema';
+import { and, desc, eq, not, sql } from 'drizzle-orm';
 
 export class WishlistService {
 	constructor() {}
@@ -9,7 +9,8 @@ export class WishlistService {
 		return await db
 			.select()
 			.from(wishlistTable)
-			.where(and(eq(wishlistTable.userId, userId), not(wishlistTable.isDeleted)));
+			.where(and(eq(wishlistTable.userId, userId), not(wishlistTable.isDeleted)))
+			.orderBy(desc(wishlistTable.name));
 	}
 
 	static async findByWishlistId(wishlistId: string) {
@@ -20,7 +21,29 @@ export class WishlistService {
 		return await db
 			.select()
 			.from(wishlistTable)
-			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)));
+			.where(
+				and(
+					eq(wishlistTable.id, wishlistId),
+					eq(wishlistTable.userId, userId),
+					not(wishlistTable.isDeleted)
+				)
+			)
+			.orderBy(desc(wishlistTable.name));
+	}
+
+	static async findWithItems(wishlistId: string, userId: string) {
+		return await db
+			.select()
+			.from(wishlistTable)
+			.leftJoin(wishlistItemTable, eq(wishlistItemTable.wishlistId, wishlistTable.id))
+			.where(
+				and(
+					eq(wishlistTable.id, wishlistId),
+					eq(wishlistTable.userId, userId),
+					not(wishlistTable.isDeleted)
+				)
+			)
+			.orderBy(desc(wishlistTable.name));
 	}
 
 	static async createWishlist(wishlistOwner: string) {
@@ -52,6 +75,4 @@ export class WishlistService {
 			.returning();
 		return wishlist;
 	}
-	// static async addWishlistItem()
-	// static async updateWishlist()
 }

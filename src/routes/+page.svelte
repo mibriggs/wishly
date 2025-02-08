@@ -5,21 +5,60 @@
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/modal.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
+	import { wishlistSchema } from '$lib/schema';
 
-	let { data }: { data: PageData } = $props();
 	let modal: Modal;
+	let { data }: { data: PageData } = $props();
+
 	let isModalOpen: boolean = $state(false);
+	let isCreatingNewWishlist: boolean = $state(false);
 	let clickedWishlist: string = $state('');
+	let isWishlistsLoading: boolean = $state(true);
+	let loadedWishlists: Wishlist[] = $state([]);
 
 	const submitDeleteWishlist: SubmitFunction = () => {
 		return async ({ update }) => {
 			modal.close();
-			await update();
+			await update({ reset: true, invalidateAll: true });
 		};
 	};
+
+	const submitCreateWishlist: SubmitFunction = () => {
+		isCreatingNewWishlist = true;
+		return async ({ update }) => {
+			await update();
+			isCreatingNewWishlist = false;
+		};
+	};
+
+	const submitLockWishlist: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				const resultData = result.data;
+				if (resultData) {
+					const updatedWishlist = wishlistSchema.parse(resultData['wishlist'][0]);
+					loadedWishlists.forEach((loadedWishlist) => {
+						if (loadedWishlist.id === updatedWishlist.id) {
+							loadedWishlist.updatedAt = updatedWishlist.updatedAt;
+							loadedWishlist.isLocked = updatedWishlist.isLocked;
+						}
+					});
+				}
+			}
+			await update({ invalidateAll: false });
+		};
+	};
+
+	$effect(() => {
+		data.wishlists.then((wishlists) => {
+			loadedWishlists = wishlists;
+			isWishlistsLoading = false;
+		});
+	});
 </script>
 
 <!-- disable locking while form action runs? -->
+<!-- disable all buttons while an action is running? -->
 {#snippet wishlistComponent(wishlist: Wishlist)}
 	<div class="flex h-44 w-[312px] flex-col justify-between rounded-lg bg-white pl-4 shadow-sm">
 		<div class="p-1">
@@ -32,9 +71,9 @@
 				href={`/wishlist/${wishlist.id}`}
 				class="select-none rounded-md border-2 px-2 py-1 shadow-sm">Expand</a
 			>
-			<form method="POST" class="w-fit" use:enhance>
+			<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
 				<button
-					class="select-none rounded-md border-2 px-2 py-1 shadow-sm"
+					class="select-none rounded-md border-2 px-2 py-1 shadow-sm disabled:bg-neutral-300 disabled:text-neutral-500"
 					formaction="?/lockWishlist"
 				>
 					{#if wishlist.isLocked}
@@ -43,8 +82,8 @@
 						<LockOpen size="20" />
 					{/if}
 				</button>
-				<input class="hidden" name="wishlistId" value={wishlist.id} />
-				<input class="hidden" name="isLocked" value={wishlist.isLocked} />
+				<input type="hidden" class="hidden" name="wishlistId" value={wishlist.id} />
+				<input type="hidden" class="hidden" name="isLocked" value={wishlist.isLocked} />
 			</form>
 			<button class="select-none rounded-md border-2 px-2 py-1 shadow-sm" type="button">
 				<Share2 size="20" />
@@ -76,22 +115,34 @@
 	</div>
 {/snippet}
 
-<!-- <main class="flex flex-wrap items-center justify-center gap-4 px-10 pt-12"> -->
-<!-- need like an autosave feature for creating new wishlists, since we manually add items no need to autosave that -->
-<main
-	class="grid grid-cols-1 items-center justify-center gap-4 p-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
->
-	{#await data.wishlists then wishlists}
-		{#each wishlists as wishlist (wishlist.id)}
-			{@render wishlistComponent(wishlist)}
-		{/each}
+<main>
+	<ul
+		class="grid grid-cols-1 items-center justify-center gap-4 p-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+	>
+		{#if isWishlistsLoading}
+			<div>Loading...</div>
+		{:else}
+			{#each loadedWishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
+				<li>{@render wishlistComponent(wishlist)}</li>
+			{/each}
 
-		<form method="POST" action="?/createWishlist" class="w-fit" use:enhance>
-			<button class="group w-fit" disabled={data.isGuestUser && wishlists.length > 0}>
-				{@render addMore()}
-			</button>
-		</form>
-	{/await}
+			<li>
+				<form
+					method="POST"
+					action="?/createWishlist"
+					class="w-fit"
+					use:enhance={submitCreateWishlist}
+				>
+					<button
+						class="group w-fit"
+						disabled={(data.isGuestUser && loadedWishlists.length === 1) || isCreatingNewWishlist}
+					>
+						{@render addMore()}
+					</button>
+				</form>
+			</li>
+		{/if}
+	</ul>
 
 	<Modal
 		id="delete-wishlist-modal"
@@ -124,7 +175,7 @@
 					<button class="rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500"
 						>Delete</button
 					>
-					<input class="hidden" name="wishlistId" value={clickedWishlist} />
+					<input type="hidden" class="hidden" name="wishlistId" value={clickedWishlist} />
 				</form>
 			</div>
 		</div>

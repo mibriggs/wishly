@@ -1,4 +1,4 @@
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { WishlistService } from '$lib/server/db/wishlist.service';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -48,20 +48,18 @@ export const actions = {
 		const wishlistId = formData.get('wishlistId');
 		const isLocked = formData.get('isLocked');
 
-		if (wishlistId !== null && isLocked !== null) {
+		if (wishlistId !== null && wishlistId.toString().trim().length > 0 && isLocked !== null) {
 			const lockedWishlist = await WishlistService.updateWishlistLock(
 				wishlistId.toString(),
 				isLocked === 'true'
 			);
-			const succeeded = lockedWishlist.length === 0 ? false : true;
+			if (lockedWishlist.length === 0) {
+				return fail(400, { message: 'Failed to update wishlist' });
+			}
 			return {
-				success: succeeded,
 				wishlist: lockedWishlist
 			};
 		}
-		return {
-			success: false,
-			wishlist: []
-		};
+		return fail(400, { message: 'Failed to update wishlist' });
 	}
 } satisfies Actions;

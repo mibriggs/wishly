@@ -9,7 +9,7 @@
 	let isModalOpen: boolean = $state(false);
 	let modal: Modal;
 
-    const submitNewItem: SubmitFunction = () => {
+	const submitNewItem: SubmitFunction = () => {
 		return async ({ update }) => {
 			modal.close();
 			await update();
@@ -52,22 +52,48 @@
 				&times;
 			</button>
 			<form class="flex flex-col gap-2" method="POST" use:enhance={submitNewItem}>
-				<input type="text" name="itemName" placeholder="Enter product name..." class="w-3/4 rounded-md border p-1 select-none" required />
-				<input type="text" name="itemUrl" placeholder="Enter url..." class="w-3/4 rounded-md border p-1" required />
-				<input type="number" name="itemQuantity" min="1" placeholder="Quantity" class="w-1/4 rounded-md border p-1" required />
-                <span class="flex items-center gap-1 text-2xl">
-                    <label for="itemCost">$</label>
-                    <input type="text" placeholder="00.00" class="w-fit border-none" id="itemCost" name="itemCost" required />
-                </span>
+				<input
+					type="text"
+					name="itemName"
+					placeholder="Product name..."
+					class="w-3/4 select-none rounded-md border p-1"
+					required
+				/>
+				<input
+					type="text"
+					name="itemUrl"
+					placeholder="Url..."
+					class="w-3/4 rounded-md border p-1"
+					required
+				/>
+				<input
+					type="number"
+					name="itemQuantity"
+					min="1"
+					placeholder="Quantity"
+					class="w-1/4 rounded-md border p-1"
+					required
+				/>
+				<span class="flex items-center gap-1 text-2xl">
+					<label for="itemCost">$</label>
+					<input
+						type="text"
+						placeholder="00.00"
+						class="w-fit border-none"
+						id="itemCost"
+						name="itemCost"
+						required
+					/>
+				</span>
 				<span class="mt-1 flex gap-2 self-center">
 					<button
-                        type="button"
+						type="button"
 						aria-label="close new item modal"
 						class="rounded-md border-2 border-black px-4 py-2"
 						onclick={() => modal.close()}>Cancel</button
 					>
 					<button
-                        formaction="?/createNewItem"
+						formaction="?/createNewItem"
 						aria-label="create new item"
 						class="rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500"
 						>Add to Wishlist</button

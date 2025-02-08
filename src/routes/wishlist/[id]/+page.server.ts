@@ -1,17 +1,24 @@
-import { redirect, type Actions } from '@sveltejs/kit';
+import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/items.service';
+import { newItemSchema, uuidSchema } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
 		throw redirect(303, '/auth/sign-up');
 	}
 
+	const maybeUuid = uuidSchema.safeParse(params.id);
+	if (!maybeUuid.success) {
+		throw redirect(303, '/');
+	}
+
+	const wishlistId = maybeUuid.data;
 	let wishlist: { wishlists: Wishlist; wishlist_items: WishlistItem | null }[] = [];
 	try {
-		wishlist = await WishlistService.findWithItems(params.id, locals.user.id);
+		wishlist = await WishlistService.findWithItems(wishlistId, locals.user.id);
 	} catch (err) {
 		throw redirect(303, '/');
 	}
@@ -34,20 +41,29 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 	};
 };
 
-//TODO server and client side validation of this + better form UI
 export const actions = {
-	createNewItem: async (event) => {
-		const formData = await event.request.formData();
-        const path = event.url.pathname.split('/')
-		const name = formData.get('itemName')?.toString() || "";
-		const url = formData.get('itemUrl')?.toString() || "";
-		const count = formData.get('itemQuantity')?.toString() || "";
-		const price = formData.get('itemCost')?.toString() || "";
-		const id = path[path.length - 1];
+	createNewItem: async ({ request, url, locals }) => {
+		const path = url.pathname.split('/');
+		const formData = await request.formData();
+		const wishlistId = path[path.length - 1];
+		const maybeItem = newItemSchema.safeParse(Object.fromEntries(formData.entries()));
 
-        const newItem = await WishlistItemsService.createNewItem(name, url, parseInt(count), price, id);
-        return {
-            items: newItem
-        }
+		if (maybeItem.success) {
+			const item = maybeItem.data;
+			const newItem = await WishlistItemsService.createNewItem(
+				item.itemName,
+				item.itemUrl,
+				item.itemQuantity,
+				item.itemCost.toString(),
+				wishlistId,
+				locals.user.id
+			);
+			if (newItem.length === 0) {
+				return fail(400, { message: 'Failed to create item' });
+			}
+			return { success: true };
+		} else {
+			return fail(400, maybeItem.error.flatten().fieldErrors);
+		}
 	}
 } satisfies Actions;

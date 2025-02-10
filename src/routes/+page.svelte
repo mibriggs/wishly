@@ -57,8 +57,6 @@
 	});
 </script>
 
-<!-- disable locking while form action runs? -->
-<!-- disable all buttons while an action is running? -->
 {#snippet wishlistComponent(wishlist: Wishlist)}
 	<div class="flex h-44 w-[312px] flex-col justify-between rounded-lg bg-white pl-4 shadow-sm">
 		<div class="p-1">
@@ -69,11 +67,12 @@
 		<div class="flex items-center gap-3 pb-4">
 			<a
 				href={`/wishlist/${wishlist.id}`}
-				class="select-none rounded-md border-2 px-2 py-1 shadow-sm">Expand</a
+				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+				>Expand</a
 			>
 			<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
 				<button
-					class="select-none rounded-md border-2 px-2 py-1 shadow-sm disabled:bg-neutral-300 disabled:text-neutral-500"
+					class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
 					formaction="?/lockWishlist"
 				>
 					{#if wishlist.isLocked}
@@ -89,7 +88,7 @@
 				<Share2 size="20" />
 			</button>
 			<button
-				class="select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm"
+				class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85"
 				type="button"
 				onclick={() => {
 					isModalOpen = true;
@@ -153,7 +152,7 @@
 	>
 		<div class="flex flex-col items-center gap-3">
 			<button
-				class="flex size-9 items-center justify-center self-end rounded-full bg-stone-200"
+				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
 				onclick={() => modal.close()}
 			>
 				&times;
@@ -168,11 +167,13 @@
 				</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
-				<button class="rounded-md border-2 border-black px-4 py-2" onclick={() => modal.close()}
-					>Cancel</button
+				<button
+					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
+					onclick={() => modal.close()}>Cancel</button
 				>
 				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
-					<button class="rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500"
+					<button
+						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
 						>Delete</button
 					>
 					<input type="hidden" class="hidden" name="wishlistId" value={clickedWishlist} />

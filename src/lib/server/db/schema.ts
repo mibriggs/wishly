@@ -39,6 +39,10 @@ export const wishlistTable = pgTable('wishlists', {
 	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).defaultNow()
 });
 
+// TODO: notes, sizes etc
+// TODO: a way to claim or show intent of buying, lastly isBought? by who etc...
+// TODO: a way to show if it has been claimed etc...
+// TODO: shared link
 export const wishlistItemTable = pgTable('wishlist_items', {
 	id: uuid('id').defaultRandom().primaryKey().unique(),
 	wishlistId: uuid('wishlist_id')

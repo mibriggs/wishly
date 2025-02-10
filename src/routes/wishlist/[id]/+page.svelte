@@ -6,6 +6,7 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { newItemSchema } from '$lib/schema';
 	import { twJoin } from 'tailwind-merge';
+	import NumberStepper from '$lib/components/number-stepper.svelte';
 
 	let { data }: { data: PageData } = $props();
 	let isModalOpen: boolean = $state(false);
@@ -127,17 +128,26 @@
 </script>
 
 <main class="w-full p-4">
-	<p class=" text-lg font-bold">{data.wishlist.name}</p>
+	<p class=" mb-2 text-lg font-bold">{data.wishlist.name}</p>
 	{#if data.items.length === 0}
 		<p class="italic text-neutral-500">No items added yet</p>
 	{:else}
-		{#each data.items as wishlistItem (wishlistItem.id)}
-			<p>{wishlistItem.itemName}</p>
-		{/each}
+		<ul class="flex w-fit flex-col gap-2">
+			{#each data.items as wishlistItem (wishlistItem.id)}
+				<li class="flex flex-col rounded-md border p-2">
+					<p class="text-center text-lg font-bold">{wishlistItem.itemName}</p>
+					<span class="flex justify-center gap-3">
+						<p>{wishlistItem.price}</p>
+						<p>{wishlistItem.quantity}</p>
+						<a href={wishlistItem.url} target="_blank">Buy now</a>
+					</span>
+				</li>
+			{/each}
+		</ul>
 	{/if}
 	<button
 		aria-label="open new item modal"
-		class="mt-4 flex select-none items-center justify-center gap-1 rounded-md bg-black px-4 py-1 text-neutral-100"
+		class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-4 py-1 text-neutral-100 transition duration-100 active:scale-90"
 		onclick={() => (isModalOpen = true)}
 	>
 		<Plus size={16} />
@@ -153,7 +163,7 @@
 	>
 		<div class="flex w-full flex-col gap-1">
 			<button
-				class="flex size-9 items-center justify-center self-end rounded-full bg-stone-200"
+				class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
 				type="button"
 				aria-label="close new item modal"
 				onclick={() => modal.close()}
@@ -192,7 +202,7 @@
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
-					<input
+					<!-- <input
 						type="number"
 						name="itemQuantity"
 						min="1"
@@ -203,7 +213,8 @@
 						)}
 						onchange={validateItemQuantity}
 						bind:value={itemQuantity}
-					/>
+					/> -->
+					<NumberStepper bind:value={itemQuantity} />
 					<p class="h-4 text-sm italic text-red-500">{quantityError}</p>
 				</span>
 
@@ -226,13 +237,13 @@
 					<button
 						type="button"
 						aria-label="close new item modal"
-						class="select-none rounded-md border-2 border-black px-4 py-2"
+						class="transform cursor-pointer select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
 						onclick={() => modal.close()}>Cancel</button
 					>
 					<button
 						formaction="?/createNewItem"
 						aria-label="create new item"
-						class="select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
+						class="transform select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 shadow-lg transition duration-100 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
 						{disabled}
 					>
 						Add to Wishlist

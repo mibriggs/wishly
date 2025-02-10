@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const uuidSchema = z.string().uuid();
 
+// TODO: 2 digits after decimal point
 const stringToNumberMinSchema = z
 	.string()
 	.superRefine((val, ctx) => {

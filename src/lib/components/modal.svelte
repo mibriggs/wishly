@@ -9,8 +9,8 @@
 		children?: Snippet;
 		onModalClose: () => void;
 	}
-	let { id, onModalClose, children, isOpen = false, class: className = '' }: ModalProps = $props();
 
+	let { id, onModalClose, children, isOpen = false, class: className = '' }: ModalProps = $props();
 	let modal: HTMLDialogElement;
 	let isClosing: boolean = $state(false);
 

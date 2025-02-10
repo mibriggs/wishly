@@ -21,6 +21,7 @@ export const authenticateUser = async (event: RequestEvent) => {
 };
 
 const createGuestUser = async (cookies: Cookies) => {
+	// maybe hash it?
 	const guestId = crypto.randomUUID();
 	const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
 	const yearFromNow = new Date(Date.now() + ONE_YEAR);

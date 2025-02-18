@@ -131,7 +131,7 @@
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
 	<div
-		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-neutral-100 px-8 py-3 shadow-md md:w-3/4 xl:w-1/3"
+		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-white px-8 py-3 shadow-md md:w-3/4 xl:w-1/3"
 	>
 		<p class="rounded-md bg-neutral-300 p-5">📦</p>
 		<span class="flex flex-col justify-center">

@@ -144,8 +144,8 @@
 			</p>
 		</span>
 		<span class="ml-auto flex items-center gap-4">
-			<button class="rounded-md p-3 hover:bg-amber-200"> <Pencil color="#F59E0B" /> </button>
-			<button class="rounded-md p-3 hover:bg-red-200"> <Trash2 color="#EF4444" /> </button>
+			<button class="rounded-md p-3 hover:bg-amber-500/20"> <Pencil color="#F59E0B" /> </button>
+			<button class="rounded-md p-3 hover:bg-red-500/20"> <Trash2 color="#EF4444" /> </button>
 		</span>
 	</div>
 {/snippet}

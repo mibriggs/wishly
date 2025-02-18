@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus } from 'lucide-svelte';
+	import { Pencil, Plus, Trash2 } from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';
@@ -7,11 +7,11 @@
 	import { newItemSchema } from '$lib/schema';
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
+	import { type WishlistItem } from '$lib/server/db/schema';
 
 	let { data }: { data: PageData } = $props();
-	let isModalOpen: boolean = $state(false);
-	let modal: Modal;
 
+	let isModalOpen: boolean = $state(false);
 	let {
 		itemName,
 		itemUrl,
@@ -28,7 +28,6 @@
 		itemQuantity: 1,
 		itemCost: undefined
 	});
-
 	let {
 		nameError,
 		urlError,
@@ -45,6 +44,8 @@
 		quantityError: '',
 		costError: undefined
 	});
+
+	let modal: Modal;
 
 	const disabled: boolean = $derived.by(() => {
 		const hasNameError: boolean = nameError === undefined || nameError !== '';
@@ -93,16 +94,16 @@
 		}
 	};
 
-	const validateItemQuantity = () => {
-		const itemQuantitySchema = newItemSchema.shape.itemQuantity;
-		const result = itemQuantitySchema.safeParse(itemQuantity);
-		if (!result.success) {
-			const error = result.error.flatten().formErrors[0];
-			quantityError = error;
-		} else {
-			quantityError = '';
-		}
-	};
+	// const validateItemQuantity = () => {
+	// 	const itemQuantitySchema = newItemSchema.shape.itemQuantity;
+	// 	const result = itemQuantitySchema.safeParse(itemQuantity);
+	// 	if (!result.success) {
+	// 		const error = result.error.flatten().formErrors[0];
+	// 		quantityError = error;
+	// 	} else {
+	// 		quantityError = '';
+	// 	}
+	// };
 
 	const validateItemUrl = () => {
 		const itemUrlSchema = newItemSchema.shape.itemUrl;
@@ -127,20 +128,36 @@
 	};
 </script>
 
+{#snippet itemComponent(wishlistItem: WishlistItem)}
+	<div
+		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-neutral-100 px-8 py-3 shadow-md md:w-1/3"
+	>
+		<p class="rounded-md bg-neutral-300 p-5">📦</p>
+		<span class="flex flex-col justify-center">
+			<p class=" text-lg font-semibold">{wishlistItem.itemName}</p>
+			<a href={wishlistItem.url} target="_blank" class=" text-blue-600 underline underline-offset-1"
+				>View Product</a
+			>
+			<p class="text-sm italic text-neutral-500">
+				${wishlistItem.price} per unit • {wishlistItem.quantity} pcs
+			</p>
+		</span>
+		<span class="ml-auto flex items-center gap-4">
+			<button class="rounded-md p-3 hover:bg-amber-200"> <Pencil color="#F59E0B" /> </button>
+			<button class="rounded-md p-3 hover:bg-red-200"> <Trash2 color="#EF4444" /> </button>
+		</span>
+	</div>
+{/snippet}
+
 <main class="w-full p-4">
 	<p class=" mb-2 text-lg font-bold">{data.wishlist.name}</p>
 	{#if data.items.length === 0}
 		<p class="italic text-neutral-500">No items added yet</p>
 	{:else}
-		<ul class="flex w-fit flex-col gap-2">
+		<ul class="flex w-full flex-col gap-2">
 			{#each data.items as wishlistItem (wishlistItem.id)}
-				<li class="flex flex-col rounded-md border p-2">
-					<p class="text-center text-lg font-bold">{wishlistItem.itemName}</p>
-					<span class="flex justify-center gap-3">
-						<p>{wishlistItem.price}</p>
-						<p>{wishlistItem.quantity}</p>
-						<a href={wishlistItem.url} target="_blank">Buy now</a>
-					</span>
+				<li>
+					{@render itemComponent(wishlistItem)}
 				</li>
 			{/each}
 		</ul>
@@ -202,20 +219,9 @@
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
-					<!-- <input
-						type="number"
-						name="itemQuantity"
-						min="1"
-						placeholder="Quantity"
-						class={twJoin(
-							'w-1/4 rounded-md border p-1 focus:outline-none',
-							quantityError && 'border-red-500'
-						)}
-						onchange={validateItemQuantity}
-						bind:value={itemQuantity}
-					/> -->
 					<NumberStepper bind:value={itemQuantity} />
 					<p class="h-4 text-sm italic text-red-500">{quantityError}</p>
+					<input hidden type="hidden" class="hidden" name="itemQuantity" value={itemQuantity} />
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">

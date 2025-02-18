@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+
 	let { children } = $props();
 </script>
 
@@ -9,6 +10,7 @@
 	<a href="/" class="select-none text-xl font-bold">Wantify</a>
 	<a href="/auth/sign-in" class="select-none underline">Sign In</a>
 </div>
+
 {@render children()}
 
 <style>

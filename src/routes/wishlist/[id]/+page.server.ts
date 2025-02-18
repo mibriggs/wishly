@@ -46,6 +46,7 @@ export const actions = {
 		const path = url.pathname.split('/');
 		const formData = await request.formData();
 		const wishlistId = path[path.length - 1];
+		console.log(Object.fromEntries(formData.entries()));
 		const maybeItem = newItemSchema.safeParse(Object.fromEntries(formData.entries()));
 
 		if (maybeItem.success) {

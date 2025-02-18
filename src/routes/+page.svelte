@@ -103,7 +103,7 @@
 
 {#snippet addMore()}
 	<div
-		class="flex h-44 w-[312px] flex-col justify-center rounded-lg border-2 border-dashed bg-blue-100 shadow-sm group-disabled:bg-neutral-300"
+		class="flex h-44 w-[312px] flex-col justify-center rounded-lg border-2 border-solid bg-blue-100 shadow-sm group-disabled:border-neutral-500 group-disabled:bg-neutral-300"
 	>
 		<div
 			class="gap- flex select-none items-center justify-center font-bold text-blue-700 group-disabled:text-neutral-500"
@@ -133,7 +133,7 @@
 					use:enhance={submitCreateWishlist}
 				>
 					<button
-						class="group w-fit"
+						class="group w-fit disabled:cursor-not-allowed"
 						disabled={(data.isGuestUser && loadedWishlists.length === 1) || isCreatingNewWishlist}
 					>
 						{@render addMore()}

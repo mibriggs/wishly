@@ -116,7 +116,7 @@
 
 <main>
 	<ul
-		class="grid grid-cols-1 items-center justify-center gap-4 p-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+		class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
 	>
 		{#if isWishlistsLoading}
 			<div>Loading...</div>

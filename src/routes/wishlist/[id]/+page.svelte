@@ -78,9 +78,21 @@
 				await update({ reset: false, invalidateAll: false });
 			} else {
 				modal.close();
+				resetInputs();
 				await update();
 			}
 		};
+	};
+
+	const resetInputs = () => {
+		itemName = '';
+		itemUrl = '';
+		itemQuantity = 1;
+		itemCost = undefined;
+		nameError = undefined;
+		urlError = undefined;
+		quantityError = '';
+		costError = undefined;
 	};
 
 	const validateItemName = () => {
@@ -93,17 +105,6 @@
 			nameError = '';
 		}
 	};
-
-	// const validateItemQuantity = () => {
-	// 	const itemQuantitySchema = newItemSchema.shape.itemQuantity;
-	// 	const result = itemQuantitySchema.safeParse(itemQuantity);
-	// 	if (!result.success) {
-	// 		const error = result.error.flatten().formErrors[0];
-	// 		quantityError = error;
-	// 	} else {
-	// 		quantityError = '';
-	// 	}
-	// };
 
 	const validateItemUrl = () => {
 		const itemUrlSchema = newItemSchema.shape.itemUrl;
@@ -130,7 +131,7 @@
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
 	<div
-		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-neutral-100 px-8 py-3 shadow-md md:w-1/3"
+		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-neutral-100 px-8 py-3 shadow-md md:w-3/4 xl:w-1/3"
 	>
 		<p class="rounded-md bg-neutral-300 p-5">📦</p>
 		<span class="flex flex-col justify-center">
@@ -150,11 +151,26 @@
 {/snippet}
 
 <main class="w-full p-4">
-	<p class=" mb-2 text-lg font-bold">{data.wishlist.name}</p>
+	<h1 class="mb-4 text-xl font-bold">{data.wishlist.name}</h1>
+	<h2 class="mb-1 text-lg font-semibold text-neutral-600">Shipping Address</h2>
+
+	<div class="mb-4 flex w-full flex-col gap-3">
+		<input
+			type="text"
+			placeholder="Street Address"
+			class="w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2"
+		/>
+		<span class="flex items-center gap-4">
+			<input type="text" placeholder="City" class="w-1/3 rounded-md border-2 p-2" />
+			<input type="text" placeholder="State" class="w-[96px] rounded-md border-2 p-2" />
+			<input type="text" placeholder="Zip Code" class="w-[96px] rounded-md border-2 p-2" />
+		</span>
+	</div>
+
 	{#if data.items.length === 0}
 		<p class="italic text-neutral-500">No items added yet</p>
 	{:else}
-		<ul class="flex w-full flex-col gap-2">
+		<ul class="flex w-full flex-col gap-3.5">
 			{#each data.items as wishlistItem (wishlistItem.id)}
 				<li>
 					{@render itemComponent(wishlistItem)}
@@ -162,9 +178,10 @@
 			{/each}
 		</ul>
 	{/if}
+
 	<button
 		aria-label="open new item modal"
-		class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-4 py-1 text-neutral-100 transition duration-100 active:scale-90"
+		class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-6 py-1 text-neutral-100 transition duration-100 active:scale-90"
 		onclick={() => (isModalOpen = true)}
 	>
 		<Plus size={16} />

@@ -170,8 +170,9 @@
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
+	<!-- everywhere else -->
 	<div
-		class="flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-white px-8 py-3 shadow-md md:w-3/4 xl:w-1/3"
+		class="hidden sm:flex w-11/12 items-center justify-start gap-4 rounded-md border border-black bg-white px-8 py-3 shadow-md md:w-3/4 xl:w-1/3"
 	>
 		<p class="rounded-md bg-neutral-300 p-5">📦</p>
 		<span class="flex flex-col justify-center">
@@ -190,6 +191,31 @@
 				onclick={() => handleItemDelete(wishlistItem)}
 			>
 				<Trash2 color="#EF4444" />
+			</button>
+		</span>
+	</div>
+	
+	<!-- phone screens -->
+	<div class="sm:hidden flex w-full items-start justify-between gap-4 rounded-md border border-black bg-white p-3">
+		<p class="rounded-md bg-neutral-300 px-4 py-3">📦</p>
+		
+		<span>
+			<p class=" text-lg font-semibold">{wishlistItem.itemName}</p>
+			<a href={wishlistItem.url} target="_blank" class=" text-blue-600 underline underline-offset-1"
+				>View Product</a
+			>
+			<p class="text-sm italic text-neutral-500">
+				${wishlistItem.price} per unit • {wishlistItem.quantity} pcs
+			</p>
+		</span>
+
+		<span class="self-end flex gap-2">
+			<button class="rounded-md hover:bg-amber-500/20 p-2"> <Pencil color="#F59E0B" size="20" /> </button>
+			<button
+				class="rounded-md hover:bg-red-500/20 p-2"
+				onclick={() => handleItemDelete(wishlistItem)}
+			>
+				<Trash2 color="#EF4444" size="20" />
 			</button>
 		</span>
 	</div>

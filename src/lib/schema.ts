@@ -50,6 +50,7 @@ export const wishlistSchema = z.object({
 });
 
 export const newItemSchema = z.object({
+	wishlistId: z.string().uuid({ message: 'ID must be a UUID' }),
 	itemName: z
 		.string({ required_error: 'Name is required' })
 		.trim()
@@ -64,4 +65,9 @@ export const newItemSchema = z.object({
 			.min(0, { message: 'Cannot have a negative price' }),
 		stringToNumberMinSchema
 	])
+});
+
+export const deleteItemSchema = z.object({
+	itemId: z.string().uuid(),
+	wishlistId: z.string().uuid()
 });

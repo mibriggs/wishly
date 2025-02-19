@@ -58,20 +58,29 @@ export class WishlistService {
 		return wishlist;
 	}
 
-	static async deleteWishlist(wishlistId: string) {
+	static async deleteWishlist(wishlistId: string, userId: string) {
 		const wishlist: Wishlist[] = await db
 			.update(wishlistTable)
 			.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
-			.where(eq(wishlistTable.id, wishlistId))
+			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 			.returning();
 		return wishlist;
 	}
 
-	static async updateWishlistLock(wishlistId: string, oldLockState: boolean) {
+	static async updateWishlistLock(wishlistId: string, userId: string, oldLockState: boolean) {
 		const wishlist: Wishlist[] = await db
 			.update(wishlistTable)
 			.set({ isLocked: !oldLockState, updatedAt: sql`NOW()` })
-			.where(eq(wishlistTable.id, wishlistId))
+			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
+			.returning();
+		return wishlist;
+	}
+
+	static async updateWishlistName(wishlistId: string, userId: string, newName: string) {
+		const wishlist: Wishlist[] = await db
+			.update(wishlistTable)
+			.set({ name: newName, updatedAt: sql`NOW()` })
+			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 			.returning();
 		return wishlist;
 	}

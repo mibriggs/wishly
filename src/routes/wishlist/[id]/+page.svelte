@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Pencil, Plus, Trash2 } from 'lucide-svelte';
+	import { Check, Pencil, Plus, Trash2, TriangleAlert, X } from 'lucide-svelte';
 	import type { PageData } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';
@@ -8,10 +8,19 @@
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type WishlistItem } from '$lib/server/db/schema';
+	import { fade, slide } from 'svelte/transition';
+	import { tick } from 'svelte';
 
 	let { data }: { data: PageData } = $props();
 
+	let newWishlistName: string = $state('');
+	let isNameEditable: boolean = $state(false);
 	let isModalOpen: boolean = $state(false);
+	let isDeleteItemModalOpen: boolean = $state(false);
+	let itemToDelete: WishlistItem | undefined = $state();
+	let newItemModal: Modal | undefined = $state();
+	let deleteItemModal: Modal | undefined = $state();
+	let wishlistName: HTMLHeadingElement | undefined = $state();
 	let {
 		itemName,
 		itemUrl,
@@ -45,8 +54,7 @@
 		costError: undefined
 	});
 
-	let modal: Modal;
-
+	const visibleItems = $derived(data.items.filter((item) => !item.isDeleted));
 	const disabled: boolean = $derived.by(() => {
 		const hasNameError: boolean = nameError === undefined || nameError !== '';
 		const hasUrlError: boolean = urlError === undefined || urlError !== '';
@@ -77,10 +85,24 @@
 				}
 				await update({ reset: false, invalidateAll: false });
 			} else {
-				modal.close();
+				newItemModal?.close();
 				resetInputs();
 				await update();
 			}
+		};
+	};
+
+	const submitDeleteWishlistItem: SubmitFunction = () => {
+		return async ({ update }) => {
+			deleteItemModal?.close();
+			await update({ reset: true, invalidateAll: true });
+		};
+	};
+
+	const submitNameChange: SubmitFunction = () => {
+		return async ({ update }) => {
+			isNameEditable = false;
+			await update({ reset: true, invalidateAll: true });
 		};
 	};
 
@@ -127,6 +149,24 @@
 			costError = '';
 		}
 	};
+
+	const handleItemDelete = (selectedItem: WishlistItem) => {
+		itemToDelete = selectedItem;
+		isDeleteItemModalOpen = true;
+	};
+
+	const handelEditName = async () => {
+		isNameEditable = true;
+		await tick();
+		wishlistName?.focus();
+	};
+
+	const handleInput = () => {
+		const currentWishlistName = wishlistName?.innerText.trim();
+		if (currentWishlistName) {
+			newWishlistName = currentWishlistName;
+		}
+	};
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
@@ -145,13 +185,43 @@
 		</span>
 		<span class="ml-auto flex items-center gap-4">
 			<button class="rounded-md p-3 hover:bg-amber-500/20"> <Pencil color="#F59E0B" /> </button>
-			<button class="rounded-md p-3 hover:bg-red-500/20"> <Trash2 color="#EF4444" /> </button>
+			<button
+				class="rounded-md p-3 hover:bg-red-500/20"
+				onclick={() => handleItemDelete(wishlistItem)}
+			>
+				<Trash2 color="#EF4444" />
+			</button>
 		</span>
 	</div>
 {/snippet}
 
 <main class="w-full p-4">
-	<h1 class="mb-4 text-xl font-bold">{data.wishlist.name}</h1>
+	<div class="mb-4 flex items-center gap-4">
+		<h1
+			bind:this={wishlistName}
+			class="py-2 text-xl font-bold focus:bg-white"
+			oninput={handleInput}
+			contenteditable={isNameEditable}
+		>
+			{data.wishlist.name}
+		</h1>
+		{#if !isNameEditable}
+			<button class="p-2" onclick={handelEditName}><Pencil size="20" /></button>
+		{:else}
+			<button
+				class="rounded-md border bg-white p-2 text-red-500 shadow-sm"
+				onclick={() => (isNameEditable = false)}><X size="20" /></button
+			>
+			<form method="POST" action="?/updateWishlistName" use:enhance={submitNameChange}>
+				<button class=" rounded-md border bg-white p-2 text-green-500 shadow-sm"
+					><Check size="20" /></button
+				>
+				<input hidden type="hidden" name="newName" value={newWishlistName} />
+				<input hidden type="hidden" name="oldName" value={data.wishlist.name} />
+				<input hidden type="hidden" name="wishlistId" value={data.wishlist.id} />
+			</form>
+		{/if}
+	</div>
 	<h2 class="mb-1 text-lg font-semibold text-neutral-600">Shipping Address</h2>
 
 	<div class="mb-4 flex w-full flex-col gap-3">
@@ -171,8 +241,8 @@
 		<p class="italic text-neutral-500">No items added yet</p>
 	{:else}
 		<ul class="flex w-full flex-col gap-3.5">
-			{#each data.items as wishlistItem (wishlistItem.id)}
-				<li>
+			{#each visibleItems as wishlistItem (wishlistItem.id)}
+				<li in:slide out:fade>
 					{@render itemComponent(wishlistItem)}
 				</li>
 			{/each}
@@ -190,7 +260,7 @@
 
 	<Modal
 		id="new-item-modal"
-		bind:this={modal}
+		bind:this={newItemModal}
 		isOpen={isModalOpen}
 		onModalClose={() => (isModalOpen = !isModalOpen)}
 		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
@@ -200,7 +270,7 @@
 				class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
 				type="button"
 				aria-label="close new item modal"
-				onclick={() => modal.close()}
+				onclick={() => newItemModal?.close()}
 			>
 				&times;
 			</button>
@@ -261,10 +331,10 @@
 						type="button"
 						aria-label="close new item modal"
 						class="transform cursor-pointer select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-						onclick={() => modal.close()}>Cancel</button
+						onclick={() => newItemModal?.close()}>Cancel</button
 					>
 					<button
-						formaction="?/createNewItem"
+						formaction="?/createWishlistItem"
 						aria-label="create new item"
 						class="transform select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 shadow-lg transition duration-100 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
 						{disabled}
@@ -272,7 +342,50 @@
 						Add to Wishlist
 					</button>
 				</span>
+
+				<input hidden type="hidden" class="hidden" name="wishlistId" value={data.wishlist.id} />
 			</form>
+		</div>
+	</Modal>
+
+	<Modal
+		id="delete-item-modal"
+		onModalClose={() => (isDeleteItemModalOpen = !isDeleteItemModalOpen)}
+		isOpen={isDeleteItemModalOpen}
+		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+		bind:this={deleteItemModal}
+	>
+		<div class="flex flex-col items-center gap-3">
+			<button
+				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
+				onclick={() => deleteItemModal?.close()}
+			>
+				&times;
+			</button>
+			<span class="rounded-md bg-red-100 p-3 text-red-500">
+				<TriangleAlert />
+			</span>
+			<span class="flex flex-col items-center justify-center gap-1">
+				<p class="text-2xl font-bold">Are you sure?</p>
+				<p class="text-md text-center text-neutral-500">
+					Are you sure you want to delete <span class="font-bold">{itemToDelete?.itemName}</span>?
+					This action cannot be undone.
+				</p>
+			</span>
+			<div class="flex items-center justify-center gap-2">
+				<button
+					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
+					onclick={() => deleteItemModal?.close()}>Cancel</button
+				>
+				<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
+					<button
+						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
+						>Delete</button
+					>
+					<input hidden type="hidden" class="hidden" name="itemId" value={itemToDelete?.id} />
+					<input hidden type="hidden" class="hidden" name="wishlistId" value={data.wishlist.id} />
+				</form>
+			</div>
 		</div>
 	</Modal>
 </main>

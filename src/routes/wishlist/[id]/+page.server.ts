@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/items.service';
-import { newItemSchema, uuidSchema } from '$lib/schema';
+import { deleteItemSchema, newItemSchema, uuidSchema } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -42,11 +42,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 };
 
 export const actions = {
-	createNewItem: async ({ request, url, locals }) => {
-		const path = url.pathname.split('/');
+	createWishlistItem: async ({ request, locals }) => {
 		const formData = await request.formData();
-		const wishlistId = path[path.length - 1];
-		console.log(Object.fromEntries(formData.entries()));
 		const maybeItem = newItemSchema.safeParse(Object.fromEntries(formData.entries()));
 
 		if (maybeItem.success) {
@@ -56,7 +53,7 @@ export const actions = {
 				item.itemUrl,
 				item.itemQuantity,
 				item.itemCost.toString(),
-				wishlistId,
+				item.wishlistId,
 				locals.user.id
 			);
 			if (newItem.length === 0) {
@@ -65,6 +62,51 @@ export const actions = {
 			return { success: true };
 		} else {
 			return fail(400, maybeItem.error.flatten().fieldErrors);
+		}
+	},
+
+	deleteWishlistItem: async ({ request, locals }) => {
+		const formData = await request.formData();
+		const maybeItem = deleteItemSchema.safeParse(Object.fromEntries(formData.entries()));
+		if (maybeItem.success) {
+			const item = maybeItem.data;
+			const deletedItem = await WishlistItemsService.deleteItem(
+				item.itemId,
+				item.wishlistId,
+				locals.user.id
+			);
+			if (deletedItem.length === 0) {
+				return fail(400, { message: 'Failed to delete item' });
+			}
+			return { success: true };
+		} else {
+			console.error(maybeItem.error.flatten().fieldErrors);
+			return fail(400, maybeItem.error.flatten().fieldErrors);
+		}
+	},
+
+	updateWishlistName: async ({ request, locals }) => {
+		const formData = await request.formData();
+		console.log(Object.fromEntries(formData.entries()));
+		const newName = formData.get('newName');
+		const oldName = formData.get('oldName');
+		const wishlistId = formData.get('wishlistId');
+
+		if (newName !== null && oldName !== null && wishlistId !== null) {
+			if (newName.toString().trim().length == 0 || newName.toString() === oldName.toString()) {
+				return fail(400, { message: 'Name must be empty and cannot match old name' });
+			}
+
+			const updatedWishlist = await WishlistService.updateWishlistName(
+				wishlistId.toString(),
+				locals.user.id,
+				newName.toString()
+			);
+			if (updatedWishlist.length === 0) {
+				return fail(400, { message: 'Failed to update name' });
+			}
+		} else {
+			return fail(400, { message: 'Failed to update name' });
 		}
 	}
 } satisfies Actions;

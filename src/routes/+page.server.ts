@@ -30,7 +30,10 @@ export const actions = {
 		const wishlistId = formData.get('wishlistId');
 
 		if (wishlistId !== null) {
-			const deletedWishlist = await WishlistService.deleteWishlist(wishlistId.toString());
+			const deletedWishlist = await WishlistService.deleteWishlist(
+				wishlistId.toString(),
+				event.locals.user.id
+			);
 			const succeeded = deletedWishlist.length === 0 ? false : true;
 			return {
 				success: succeeded,
@@ -51,6 +54,7 @@ export const actions = {
 		if (wishlistId !== null && wishlistId.toString().trim().length > 0 && isLocked !== null) {
 			const lockedWishlist = await WishlistService.updateWishlistLock(
 				wishlistId.toString(),
+				event.locals.user.id,
 				isLocked === 'true'
 			);
 			if (lockedWishlist.length === 0) {

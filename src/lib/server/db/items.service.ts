@@ -1,6 +1,6 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '.';
-import { wishlistItemTable, type WishlistItem } from './schema';
+import { wishlistItemTable, wishlistTable, type WishlistItem } from './schema';
 import { WishlistService } from './wishlist.service';
 
 export class WishlistItemsService {
@@ -36,5 +36,25 @@ export class WishlistItemsService {
 			return items;
 		}
 		return [];
+	}
+
+	static async deleteItem(itemId: string, wishlistId: string, userId: string) {
+		const query = db
+			.select({ wishlistId: wishlistTable.id })
+			.from(wishlistTable)
+			.where(eq(wishlistTable.userId, userId));
+
+		const items: WishlistItem[] = await db
+			.update(wishlistItemTable)
+			.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
+			.where(
+				and(
+					eq(wishlistItemTable.wishlistId, wishlistId),
+					eq(wishlistItemTable.id, itemId),
+					inArray(wishlistItemTable.wishlistId, query)
+				)
+			)
+			.returning();
+		return items;
 	}
 }

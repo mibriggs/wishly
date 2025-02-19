@@ -263,7 +263,7 @@
 		</span>
 	</div>
 
-	{#if data.items.length === 0}
+	{#if visibleItems.length === 0}
 		<p class="italic text-neutral-500">No items added yet</p>
 	{:else}
 		<ul class="flex w-full flex-col gap-3.5">

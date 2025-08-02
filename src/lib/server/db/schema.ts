@@ -16,9 +16,12 @@ export const userTable = pgTable('users', {
 
 export const sessionTable = pgTable('sessions', {
 	id: varchar('id', { length: 255 }).primaryKey().unique(),
+	secretHash: varchar('secret_hash', { length: 255 }),
+	token: varchar('token', { length: 255 }),
 	userId: uuid('user_id')
 		.references(() => userTable.id)
 		.notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull(),
 	expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 }).notNull()
 });
 

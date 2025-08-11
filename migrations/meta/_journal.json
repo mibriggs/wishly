@@ -1,13 +1,20 @@
 {
-	"version": "7",
-	"dialect": "postgresql",
-	"entries": [
-		{
-			"idx": 0,
-			"version": "7",
-			"when": 1738793268531,
-			"tag": "0000_public_deathbird",
-			"breakpoints": true
-		}
-	]
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1738793268531,
+      "tag": "0000_public_deathbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1754953364192,
+      "tag": "0001_common_avengers",
+      "breakpoints": true
+    }
+  ]
 }

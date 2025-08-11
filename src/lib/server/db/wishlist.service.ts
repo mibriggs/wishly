@@ -1,6 +1,7 @@
 import { db } from '.';
 import { wishlistItemTable, wishlistTable, type Wishlist } from './schema';
 import { and, desc, eq, not, sql } from 'drizzle-orm';
+import { UserService } from './user.service';
 
 export class WishlistService {
 	constructor() {}
@@ -10,7 +11,7 @@ export class WishlistService {
 			.select()
 			.from(wishlistTable)
 			.where(and(eq(wishlistTable.userId, userId), not(wishlistTable.isDeleted)))
-			.orderBy(desc(wishlistTable.name));
+			.orderBy(desc(wishlistTable.createdAt));
 	}
 
 	static async findByWishlistId(wishlistId: string) {
@@ -47,15 +48,24 @@ export class WishlistService {
 	}
 
 	static async createWishlist(wishlistOwner: string) {
-		const wishlistName = `My Wishlist: ${Date.now()}`;
-		const wishlist: Wishlist[] = await db
-			.insert(wishlistTable)
-			.values({
-				userId: wishlistOwner,
-				name: wishlistName
-			})
-			.returning();
-		return wishlist;
+		const user = await UserService.findById(wishlistOwner);
+		if (user) {
+			const madeWishlists = await this.findByUserId(wishlistOwner);
+			if (user.isGuest && madeWishlists.length > 0) {
+				return [];
+			}
+
+			const wishlistName = `My Wishlist: ${Date.now()}`;
+			const wishlist: Wishlist[] = await db
+				.insert(wishlistTable)
+				.values({
+					userId: wishlistOwner,
+					name: wishlistName
+				})
+				.returning();
+			return wishlist;
+		}
+		return [];
 	}
 
 	static async deleteWishlist(wishlistId: string, userId: string) {

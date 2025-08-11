@@ -1,10 +1,21 @@
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { UserService } from './db/user.service';
-import type { User } from './db/schema';
+import type { Session, User } from './db/schema';
+import { SessionUtils } from './session/session';
 
 export const authenticateUser = async (event: RequestEvent) => {
 	// check if there's a full user
+	const sessionToken = event.cookies.get('session_token');
+	if (sessionToken) {
+		const validSession: Session | null = await SessionUtils.validateSessionToken(sessionToken);
+		if (validSession) {
+			const userId = validSession.userId;
+			const user = await UserService.findById(userId);
+			if (user) return user;
+		}
+	}
 
+	// get or create guest
 	let guestId = event.cookies.get('wantify_guest');
 	let guestUser: User[] = [];
 

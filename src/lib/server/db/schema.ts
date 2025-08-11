@@ -1,10 +1,13 @@
 import { type InferSelectModel } from 'drizzle-orm';
 import { boolean, decimal, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { u8bytea } from './custom-types';
 
 export const userTable = pgTable('users', {
 	id: uuid('id').defaultRandom().primaryKey().unique(),
 	guestId: uuid('guest_id').unique(),
 	isGuest: boolean('is_guest').default(false).notNull(),
+	githubId: integer('github_id'),
+	githubUsername: varchar('github_username', { length: 255 }),
 	email: varchar('email', { length: 255 }),
 	name: varchar('name', { length: 255 }),
 	streetAddress: varchar('street_address', { length: 255 }),
@@ -16,13 +19,15 @@ export const userTable = pgTable('users', {
 
 export const sessionTable = pgTable('sessions', {
 	id: varchar('id', { length: 255 }).primaryKey().unique(),
-	secretHash: varchar('secret_hash', { length: 255 }),
-	token: varchar('token', { length: 255 }),
+	secretHash: u8bytea('secret_hash').notNull(),
 	userId: uuid('user_id')
 		.references(() => userTable.id)
 		.notNull(),
-	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull(),
-	expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 }).notNull()
+	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
+	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+	lastActivityAt: timestamp('last_activity_at', { withTimezone: true, precision: 6 })
+		.notNull()
+		.defaultNow()
 });
 
 export const wishlistTable = pgTable('wishlists', {

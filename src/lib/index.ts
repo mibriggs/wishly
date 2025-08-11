@@ -16,3 +16,18 @@ export const hashSecret = async (secret: string): Promise<Uint8Array> => {
 	const secretHashBuffer = await crypto.subtle.digest('SHA-256', secretBytes);
 	return new Uint8Array(secretHashBuffer);
 };
+
+export const constantTimeEqual = (a: Uint8Array, b: Uint8Array): boolean => {
+	if (a.byteLength !== b.byteLength) {
+		return false;
+	}
+	let c = 0;
+	for (let i = 0; i < a.byteLength; i++) {
+		c |= a[i] ^ b[i];
+	}
+	return c === 0;
+};
+
+export function getSingleObjectOrNull<T>(list: readonly T[]): T | null {
+	return list.length === 1 ? list[0] : null;
+}

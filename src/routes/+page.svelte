@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { Lock, LockOpen, Plus, Share2, Trash2, TriangleAlert } from 'lucide-svelte';
-	import type { PageData } from './$types';
+	import type { PageData, PageProps } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/modal.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { wishlistSchema } from '$lib/schema';
+	import toast from 'svelte-french-toast';
 
 	let modal: Modal;
-	let { data }: { data: PageData } = $props();
+	let { data, form }: PageProps = $props();
 
 	let isModalOpen: boolean = $state(false);
 	let isCreatingNewWishlist: boolean = $state(false);
@@ -20,6 +21,7 @@
 		return async ({ update }) => {
 			modal.close();
 			await update({ reset: true, invalidateAll: true });
+			toast.success('Wishlist deleted');
 		};
 	};
 
@@ -28,6 +30,12 @@
 		return async ({ update }) => {
 			await update();
 			isCreatingNewWishlist = false;
+			if (form?.success) {
+				toast.success('New wishlist created');
+			}
+			else {
+				toast.error('Cannot make more guest lists');
+			}
 		};
 	};
 

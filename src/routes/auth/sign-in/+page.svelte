@@ -21,12 +21,13 @@
 				<p>Google</p>
 			</button>
 
-			<button
+			<a
 				class="flex items-center justify-center gap-1 rounded-md border-2 px-12 py-1 shadow-sm"
+				href="/auth/sign-in/github"
 			>
 				<img src={githubLogo} alt="github logo" width="16" />
 				<p>GitHub</p>
-			</button>
+			</a>
 		</div>
 
 		<div class="flex items-center justify-center gap-2">

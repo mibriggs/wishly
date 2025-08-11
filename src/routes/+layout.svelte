@@ -1,14 +1,26 @@
 <script lang="ts">
+	import { Toaster } from 'svelte-french-toast';
 	import '../app.css';
+	import type { LayoutProps } from './$types';
 
-	let { children } = $props();
+	let { data, children }: LayoutProps = $props();
 </script>
+
+<Toaster />
 
 <div
 	class="sticky top-0 z-50 flex items-center justify-between border-b-[1px] bg-neutral-100 p-4 shadow-sm"
 >
 	<a href="/" class="select-none text-xl font-bold">Wantify</a>
-	<a href="/auth/sign-in" class="select-none underline">Sign In</a>
+
+	{#if data.user.isGuest}
+		<a href="/auth/sign-in" class="select-none underline">Sign In</a>
+	{:else if data.user.githubUsername}
+		<div>
+			<span>{data.user.githubUsername}:</span>
+			<a href="/auth/sign-out" class="select-none underline">Sign Out</a>
+		</div>
+	{/if}
 </div>
 
 {@render children()}

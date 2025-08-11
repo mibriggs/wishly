@@ -15,6 +15,13 @@
       "when": 1754953364192,
       "tag": "0001_common_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754953987672,
+      "tag": "0002_nullable-deleted-at-sessions",
+      "breakpoints": true
     }
   ]
 }

@@ -345,7 +345,7 @@
 					<span class="flex items-center gap-1 text-2xl">
 						<label for="itemCost" class="select-none">$</label>
 						<input
-							type="text"
+							type="number"
 							placeholder="00.00"
 							class={twJoin('w-fit border-none focus:outline-none', costError && 'border-red-500')}
 							id="itemCost"
@@ -419,3 +419,15 @@
 		</div>
 	</Modal>
 </main>
+
+<style>
+	input[type='number']::-webkit-outer-spin-button,
+	input[type='number']::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
+	}
+
+	input[type='number'] {
+		-moz-appearance: textfield;
+	}
+</style>

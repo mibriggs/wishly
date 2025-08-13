@@ -346,6 +346,7 @@
 						<label for="itemCost" class="select-none">$</label>
 						<input
 							type="number"
+							inputmode="decimal"
 							placeholder="00.00"
 							class={twJoin('w-fit border-none focus:outline-none', costError && 'border-red-500')}
 							id="itemCost"

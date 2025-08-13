@@ -3,7 +3,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { generateState } from 'arctic';
 
 export const GET: RequestHandler = ({ cookies }) => {
-	const state = generateState();
+	const state: string = generateState();
 	const githubUrl: URL = github.createAuthorizationURL(state, []);
 
 	cookies.set('github_oauth_state', state, {

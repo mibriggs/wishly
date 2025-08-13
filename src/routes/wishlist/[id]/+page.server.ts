@@ -1,8 +1,8 @@
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
-import { WishlistService } from '$lib/server/db/wishlist.service';
-import { WishlistItemsService } from '$lib/server/db/items.service';
+import { WishlistService } from '$lib/server/db/services/wishlist.service';
+import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { deleteItemSchema, newItemSchema, uuidSchema } from '$lib/schema';
 
 export const load: PageServerLoad = async ({ locals, params }) => {

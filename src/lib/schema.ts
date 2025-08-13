@@ -32,7 +32,7 @@ const stringToNumberMinSchema = z
 			});
 		}
 	})
-	.transform((val) => Number(val));
+	.transform((val) => Math.round(Number(val) * 100) / 100);
 
 export const wishlistSchema = z.object({
 	id: z.string(),
@@ -71,3 +71,16 @@ export const deleteItemSchema = z.object({
 	itemId: z.string().uuid(),
 	wishlistId: z.string().uuid()
 });
+
+export const githubUserSchema = z.object({
+	id: z.number(),
+	login: z.string()
+});
+
+export const discordUserSchema = z.object({
+	id: z.string(),
+	username: z.string()
+});
+
+export type DiscordUser = z.infer<typeof discordUserSchema>;
+export type GithubUser = z.infer<typeof githubUserSchema>;

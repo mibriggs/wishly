@@ -1,9 +1,10 @@
 import { constantTimeEqual, generateSecureRandomString, hashSecret } from '$lib';
 import type { Session } from '../db/schema';
-import { SessionService } from '../db/session.service';
+import { SessionService } from '../db/services/session.service';
 
 type SessionWithToken = Session & { token: string };
-const INACTIVITY_TIMEOUT_SECONDS = 60 * 60 * 24 * 10; // 10 days
+
+export const INACTIVITY_TIMEOUT_SECONDS = 60 * 60 * 24 * 10; // 10 days
 const ACTIVITY_CHECK_INTERVAL_SECONDS = 60 * 60; // 1 hour
 const DUMMY_HASH_32 = new Uint8Array(32);
 

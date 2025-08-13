@@ -15,9 +15,14 @@
 
 	{#if data.user.isGuest}
 		<a href="/auth/sign-in" class="select-none underline">Sign In</a>
-	{:else if data.user.githubUsername}
+	{:else}
 		<div>
-			<span>{data.user.githubUsername}:</span>
+			<span>
+				{data.user.githubUsername ??
+					data.user.discordUsername ??
+					data.user.googleUsername ??
+					'user'}:
+			</span>
 			<a href="/auth/sign-out" class="select-none underline">Sign Out</a>
 		</div>
 	{/if}

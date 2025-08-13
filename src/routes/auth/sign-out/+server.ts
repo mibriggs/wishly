@@ -1,7 +1,5 @@
 import { SessionUtils } from '$lib/server/session/session';
 import type { RequestHandler } from '@sveltejs/kit';
-import { generateState } from 'arctic';
-import github from 'lucide-svelte/icons/github';
 
 export const GET: RequestHandler = async ({ cookies }) => {
 	const sessionToken = cookies.get('session_token');
@@ -9,9 +7,10 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	if (sessionToken) {
 		const deletedSession = await SessionUtils.deleteSessionToken(sessionToken);
 
-		cookies.delete('session_token', {
-			path: '/'
-		});
+		cookies
+			.getAll()
+			.filter((cookie) => cookie.name !== 'wantify_guest')
+			.forEach((cookie) => cookies.delete(cookie.name, { path: '/' }));
 
 		if (deletedSession) {
 			const headers: Headers = new Headers();

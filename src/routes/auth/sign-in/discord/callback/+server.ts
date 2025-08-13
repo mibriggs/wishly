@@ -1,18 +1,19 @@
-import { githubUserSchema, type GithubUser } from '$lib/schema';
+import { discordUserSchema, type DiscordUser } from '$lib/schema';
 import { UserService } from '$lib/server/db/services/user.service';
-import { github } from '$lib/server/providers/github';
+import { discord } from '$lib/server/providers/discord';
 import { INACTIVITY_TIMEOUT_SECONDS, SessionUtils } from '$lib/server/session/session';
 import type { Cookies, RequestHandler } from '@sveltejs/kit';
 import type { OAuth2Tokens } from 'arctic';
 
-const GITHUB_URL = 'https://api.github.com/user';
+const DISCORD_URL = 'https://discord.com/api/users/@me';
 
 export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	const code: string | null = url.searchParams.get('code');
 	const state: string | null = url.searchParams.get('state');
-	const storedState: string | null = cookies.get('github_oauth_state') ?? null;
+	const storedState: string | null = cookies.get('discord_oauth_state') ?? null;
+	const storedCodeVerifier: string | null = cookies.get('discord_code_verifier') ?? null;
 
-	if (code === null || state === null || storedState === null) {
+	if (code === null || state === null || storedState === null || storedCodeVerifier === null) {
 		return new Response(null, {
 			status: 400
 		});
@@ -26,7 +27,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 
 	let tokens: OAuth2Tokens;
 	try {
-		tokens = await github.validateAuthorizationCode(code);
+		tokens = await discord.validateAuthorizationCode(code, storedCodeVerifier);
 	} catch (e) {
 		return new Response(null, {
 			status: 400
@@ -36,24 +37,24 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	const headers: Headers = new Headers();
 	headers.append('Authorization', `Bearer ${tokens.accessToken()}`);
 
-	const githubUserResponse = await fetch(GITHUB_URL, {
+	const discordUserResponse = await fetch(DISCORD_URL, {
 		headers: headers
 	});
 
-	const response = (await githubUserResponse.json()) as unknown; // TODO: Better Validation
-	const maybeGithubUser = githubUserSchema.safeParse(response);
+	const response = (await discordUserResponse.json()) as unknown; // TODO: Better Validation
+	const maybeDiscordUser = discordUserSchema.safeParse(response);
 
-	if (maybeGithubUser.error) {
+	if (maybeDiscordUser.error) {
 		return new Response(null, {
 			status: 400
 		});
 	}
 
-	const githubUser: GithubUser = maybeGithubUser.data;
-	const githubUserId = githubUser.id;
-	const githubUsername = githubUser.login;
+	const discordUser: DiscordUser = maybeDiscordUser.data;
+	const discordUserId = discordUser.id;
+	const discordUsername = discordUser.username;
 
-	const existingUser = await UserService.findByOauthId(githubUserId, 'GITHUB');
+	const existingUser = await UserService.findByOauthId(discordUserId, 'DISCORD');
 
 	if (existingUser) {
 		return createSessionOrThrow(existingUser.id, cookies);
@@ -63,9 +64,9 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	if (guestId) {
 		const fullUser = await UserService.makeGuestUserOAuthUser(
 			guestId,
-			githubUserId,
-			githubUsername,
-			'GITHUB'
+			discordUserId,
+			discordUsername,
+			'DISCORD'
 		);
 
 		if (fullUser) {
@@ -79,7 +80,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			status: 400
 		});
 	} else {
-		const newUser = await UserService.createOauthUser(githubUserId, githubUsername, 'GITHUB');
+		const newUser = await UserService.createOauthUser(discordUserId, discordUsername, 'DISCORD');
 
 		if (newUser) {
 			return createSessionOrThrow(newUser.id, cookies);

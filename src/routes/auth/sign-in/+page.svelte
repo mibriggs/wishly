@@ -2,6 +2,8 @@
 	import { ChevronRight } from 'lucide-svelte';
 	import googleLogo from '$lib/assets/google.svg';
 	import githubLogo from '$lib/assets/github.svg';
+	import discordLogo from '$lib/assets/discord.svg';
+	import OauthProviders from '$lib/components/oauth-providers.svelte';
 </script>
 
 <main class="flex w-screen items-center justify-center">
@@ -13,22 +15,7 @@
 			<p class="text-center text-sm text-gray-500">Welcome back! Please sign in to continue</p>
 		</div>
 
-		<div class="flex w-full items-center justify-center gap-1 self-center">
-			<button
-				class="flex items-center justify-center gap-1 rounded-md border-2 px-12 py-1 shadow-sm"
-			>
-				<img src={googleLogo} alt="google logo" width="16" />
-				<p>Google</p>
-			</button>
-
-			<a
-				class="flex items-center justify-center gap-1 rounded-md border-2 px-12 py-1 shadow-sm"
-				href="/auth/sign-in/github"
-			>
-				<img src={githubLogo} alt="github logo" width="16" />
-				<p>GitHub</p>
-			</a>
-		</div>
+		<OauthProviders />
 
 		<div class="flex items-center justify-center gap-2">
 			<hr class="w-[45%] border" />
@@ -67,8 +54,7 @@
 		</button>
 
 		<a href="/auth/sign-up" class="flex w-fit gap-1 hover:underline">
-			<p class="text-gray-500">Don't have an account?</p>
-			<p class="font-bold">Sign up</p>
+			<p class="text-gray-500">Don't have an account? <b class="text-black">Sign up</b></p>
 		</a>
 	</div>
 </main>

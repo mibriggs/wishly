@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { WishlistService } from '$lib/server/db/wishlist.service';
+import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {

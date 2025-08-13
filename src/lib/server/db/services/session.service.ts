@@ -1,6 +1,6 @@
-import { db } from '.';
+import { db } from '..';
 import { and, eq, lte, sql } from 'drizzle-orm';
-import { sessionTable, type Session } from './schema';
+import { sessionTable, type Session } from '../schema';
 import { getSingleObjectOrNull } from '$lib';
 
 export class SessionService {

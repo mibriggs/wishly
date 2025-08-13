@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { db } from '.';
-import { wishlistItemTable, wishlistTable, type WishlistItem } from './schema';
 import { WishlistService } from './wishlist.service';
+import { db } from '..';
+import { wishlistItemTable, type WishlistItem, wishlistTable } from '../schema';
 
 export class WishlistItemsService {
 	constructor() {}

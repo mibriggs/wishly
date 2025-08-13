@@ -1,5 +1,5 @@
-import { db } from '.';
-import { wishlistItemTable, wishlistTable, type Wishlist } from './schema';
+import { db } from '..';
+import { wishlistItemTable, wishlistTable, type Wishlist } from '../schema';
 import { and, desc, eq, not, sql } from 'drizzle-orm';
 import { UserService } from './user.service';
 

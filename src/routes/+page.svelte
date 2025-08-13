@@ -32,8 +32,7 @@
 			isCreatingNewWishlist = false;
 			if (form?.success) {
 				toast.success('New wishlist created');
-			}
-			else {
+			} else {
 				toast.error('Cannot make more guest lists');
 			}
 		};

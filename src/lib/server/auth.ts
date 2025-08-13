@@ -1,5 +1,5 @@
 import type { Cookies, RequestEvent } from '@sveltejs/kit';
-import { UserService } from './db/user.service';
+import { UserService } from './db/services/user.service';
 import type { Session, User } from './db/schema';
 import { SessionUtils } from './session/session';
 

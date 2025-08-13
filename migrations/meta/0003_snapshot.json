@@ -1,6 +1,6 @@
 {
-	"id": "46687d33-7232-49da-a90d-5ee8b8d928db",
-	"prevId": "5e788bc6-24e7-4aa0-97d4-1c4d65379d93",
+	"id": "04aa473a-f87e-4893-b114-2321f2ba2f5b",
+	"prevId": "88d4e6c4-e384-4593-a6b9-8ce24fa43c2d",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -103,6 +103,30 @@
 				},
 				"github_username": {
 					"name": "github_username",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"google_id": {
+					"name": "google_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"google_username": {
+					"name": "google_username",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"discord_id": {
+					"name": "discord_id",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"discord_username": {
+					"name": "discord_username",
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": false

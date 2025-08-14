@@ -93,7 +93,10 @@
 				<input type="hidden" class="hidden" name="wishlistId" value={wishlist.id} />
 				<input type="hidden" class="hidden" name="isLocked" value={wishlist.isLocked} />
 			</form>
-			<button class="select-none rounded-md border-2 px-2 py-1 shadow-sm" type="button">
+			<button
+				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+				type="button"
+			>
 				<Share2 size="20" />
 			</button>
 			<button

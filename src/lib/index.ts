@@ -1,9 +1,9 @@
 // place files you want to import through the `$lib` alias in this folder.
 import { encodeBase32LowerCase } from '@oslojs/encoding';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_HASHIDS_SALT } from '$env/static/public';
 import Hashids from 'hashids';
 
-const hashids = new Hashids(env.PUBLIC_HASHIDS_SALT, 10);
+const hashids = new Hashids(PUBLIC_HASHIDS_SALT, 10);
 
 // Generating IDs and Secrets
 export const generateSecureRandomString = (): string => {

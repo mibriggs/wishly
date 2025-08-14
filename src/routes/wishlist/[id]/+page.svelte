@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Check, Pencil, Plus, Trash2, TriangleAlert, X } from 'lucide-svelte';
-	import type { PageData } from './$types';
+	import type { PageProps } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
@@ -11,7 +11,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
 
-	let { data }: { data: PageData } = $props();
+	let { data }: PageProps = $props();
 
 	let newWishlistName: string = $state('');
 	let isNameEditable: boolean = $state(false);

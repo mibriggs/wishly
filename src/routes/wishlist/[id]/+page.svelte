@@ -9,6 +9,7 @@
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type WishlistItem } from '$lib/server/db/schema';
 	import { fade, slide } from 'svelte/transition';
+	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
 
@@ -157,19 +158,23 @@
 	const handleEditName = async () => {
 		isNameEditable = true;
 
-		requestAnimationFrame(() => {
+		await tick();
+
+		wishlistName?.focus();
+
+		setTimeout(() => {
 			if (!wishlistName) return;
+
 			const range = document.createRange();
 			range.selectNodeContents(wishlistName);
 
-			const sel = window.getSelection();
+			const selection = window.getSelection();
 
-			if (!sel) return;
-			sel.removeAllRanges();
-			sel.addRange(range);
+			if (!selection) return;
+			selection.removeAllRanges();
+			selection.addRange(range);
 
-			wishlistName.focus();
-		});
+		}, 50);
 	};
 
 	const handleInput = () => {

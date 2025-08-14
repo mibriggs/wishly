@@ -88,7 +88,6 @@ export const actions = {
 
 	updateWishlistName: async ({ request, locals }) => {
 		const formData = await request.formData();
-		console.log(Object.fromEntries(formData.entries()));
 		const newName = formData.get('newName');
 		const oldName = formData.get('oldName');
 		const wishlistId = formData.get('wishlistId');

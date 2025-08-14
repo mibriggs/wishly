@@ -43,6 +43,7 @@
 		"@oslojs/encoding": "^1.1.0",
 		"arctic": "^3.7.0",
 		"drizzle-orm": "^0.44.4",
+		"hashids": "^2.3.0",
 		"lucide-svelte": "^0.474.0",
 		"postgres": "^3.4.4",
 		"svelte-french-toast": "^2.0.0-alpha.0",

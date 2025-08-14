@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { Lock, LockOpen, Plus, Share2, Trash2, TriangleAlert } from 'lucide-svelte';
-	import type { PageData, PageProps } from './$types';
+	import type { PageProps } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/modal.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { wishlistSchema } from '$lib/schema';
 	import toast from 'svelte-french-toast';
+	import { uuidToShortId } from '$lib';
 
 	let modal: Modal;
 	let { data, form }: PageProps = $props();
@@ -73,10 +74,11 @@
 
 		<div class="flex items-center gap-3 pb-4">
 			<a
-				href={`/wishlist/${wishlist.id}`}
+				href={`/wishlist/${uuidToShortId(wishlist.id)}`}
 				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-				>Expand</a
 			>
+				Expand
+			</a>
 			<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
 				<button
 					class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"

@@ -4,13 +4,14 @@ import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { deleteItemSchema, newItemSchema, uuidSchema } from '$lib/schema';
+import { shortIdToUuid } from '$lib';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
 		throw redirect(303, '/auth/sign-up');
 	}
 
-	const maybeUuid = uuidSchema.safeParse(params.id);
+	const maybeUuid = uuidSchema.safeParse(shortIdToUuid(params.id));
 	if (!maybeUuid.success) {
 		throw redirect(303, '/');
 	}

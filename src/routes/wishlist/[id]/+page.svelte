@@ -156,20 +156,19 @@
 
 	const handleEditName = async () => {
 		isNameEditable = true;
-		
+
 		requestAnimationFrame(() => {
 			if (!wishlistName) return;
 			const range = document.createRange();
 			range.selectNodeContents(wishlistName);
-			
+
 			const sel = window.getSelection();
-	
+
 			if (!sel) return;
 			sel.removeAllRanges();
 			sel.addRange(range);
 
 			wishlistName.focus();
-
 		});
 	};
 
@@ -186,7 +185,7 @@
 		if (wishlistName) {
 			wishlistName.innerText = data.wishlist.name;
 		}
-	}
+	};
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}

@@ -9,7 +9,6 @@
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type WishlistItem } from '$lib/server/db/schema';
 	import { fade, slide } from 'svelte/transition';
-	import { tick } from 'svelte';
 
 	let { data }: PageProps = $props();
 
@@ -155,10 +154,23 @@
 		isDeleteItemModalOpen = true;
 	};
 
-	const handelEditName = async () => {
+	const handleEditName = async () => {
 		isNameEditable = true;
-		await tick();
-		wishlistName?.focus();
+		
+		requestAnimationFrame(() => {
+			if (!wishlistName) return;
+			const range = document.createRange();
+			range.selectNodeContents(wishlistName);
+			
+			const sel = window.getSelection();
+	
+			if (!sel) return;
+			sel.removeAllRanges();
+			sel.addRange(range);
+
+			wishlistName.focus();
+
+		});
 	};
 
 	const handleInput = () => {
@@ -167,6 +179,14 @@
 			newWishlistName = currentWishlistName;
 		}
 	};
+
+	const revertWishlistName = () => {
+		isNameEditable = false;
+
+		if (wishlistName) {
+			wishlistName.innerText = data.wishlist.name;
+		}
+	}
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
@@ -232,15 +252,16 @@
 			class="py-2 text-xl font-bold focus:bg-white"
 			oninput={handleInput}
 			contenteditable={isNameEditable}
+			dir="ltr"
 		>
 			{data.wishlist.name}
 		</h1>
 		{#if !isNameEditable}
-			<button class="p-2" onclick={handelEditName}><Pencil size="20" /></button>
+			<button class="p-2" onclick={handleEditName}><Pencil size="20" /></button>
 		{:else}
 			<button
 				class="rounded-md border bg-white p-2 text-red-500 shadow-sm"
-				onclick={() => (isNameEditable = false)}><X size="20" /></button
+				onclick={revertWishlistName}><X size="20" /></button
 			>
 			<form method="POST" action="?/updateWishlistName" use:enhance={submitNameChange}>
 				<button class=" rounded-md border bg-white p-2 text-green-500 shadow-sm"
@@ -430,5 +451,15 @@
 
 	input[type='number'] {
 		-moz-appearance: textfield;
+	}
+
+	h1[contenteditable='true'] {
+		padding-left: 0.5rem;
+		padding-right: 0.5rem;
+		border-radius: 0.375rem;
+	}
+
+	h1 {
+		transition: padding 0.3s ease;
 	}
 </style>

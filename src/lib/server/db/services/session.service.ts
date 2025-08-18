@@ -22,7 +22,7 @@ export class SessionService {
 		return getSingleObjectOrNull<Session>(sessions);
 	}
 
-	static async getSession(sessionId: string) {
+	static async getSession(sessionId: string): Promise<Session | null> {
 		const sessions: Session[] = await db
 			.select()
 			.from(sessionTable)
@@ -31,7 +31,7 @@ export class SessionService {
 		return getSingleObjectOrNull<Session>(sessions);
 	}
 
-	static async deleteSession(sessionId: string) {
+	static async deleteSession(sessionId: string): Promise<Session | null> {
 		const sessions: Session[] = await db
 			.update(sessionTable)
 			.set({ deletedAt: sql`NOW()` })
@@ -41,7 +41,10 @@ export class SessionService {
 		return getSingleObjectOrNull<Session>(sessions);
 	}
 
-	static async updateLastActivity(sessionId: string, lastActivityAt: Date) {
+	static async updateLastActivity(
+		sessionId: string,
+		lastActivityAt: Date
+	): Promise<Session | null> {
 		const sessions: Session[] = await db
 			.update(sessionTable)
 			.set({ lastActivityAt: sql`NOW()` })

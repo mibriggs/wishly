@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 export const uuidSchema = z.string().uuid();
 
-// TODO: 2 digits after decimal point
 const stringToNumberMinSchema = z
 	.string()
 	.superRefine((val, ctx) => {
@@ -84,3 +83,11 @@ export const discordUserSchema = z.object({
 
 export type DiscordUser = z.infer<typeof discordUserSchema>;
 export type GithubUser = z.infer<typeof githubUserSchema>;
+export type FormDataInput = {
+	action: URL;
+	formData: FormData;
+	formElement: HTMLFormElement;
+	controller: AbortController;
+	submitter: HTMLElement | null;
+	cancel: () => void;
+};

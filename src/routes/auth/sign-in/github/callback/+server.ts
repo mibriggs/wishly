@@ -40,7 +40,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		headers: headers
 	});
 
-	const response = (await githubUserResponse.json()) as unknown; // TODO: Better Validation
+	const response = (await githubUserResponse.json()) as unknown;
 	const maybeGithubUser = githubUserSchema.safeParse(response);
 
 	if (maybeGithubUser.error) {

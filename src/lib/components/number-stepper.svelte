@@ -21,7 +21,7 @@
 	const digits = $derived(String(value).padStart(digitCount, '0').split('').map(Number));
 
 	function vibrate() {
-		if (navigator.vibrate) navigator.vibrate(50); // Short vibration
+		if (navigator.vibrate) navigator.vibrate(50);
 	}
 
 	const increment = () => startChange(1);

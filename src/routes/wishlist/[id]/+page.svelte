@@ -10,8 +10,9 @@
 	import { type WishlistItem } from '$lib/server/db/schema';
 	import { fade, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
+	import toast from 'svelte-french-toast';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
 
 	let newWishlistName: string = $state('');
 	let isNameEditable: boolean = $state(false);
@@ -64,11 +65,12 @@
 		return hasNameError || hasUrlError || hasCountError || hasPriceError;
 	});
 
-	const submitNewItem: SubmitFunction = () => {
+	const submitNewItem: SubmitFunction = ({ formData }) => {
+		formData.append('wishlistId', data.wishlist.id);
+
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
 				const errorDetails = result.data;
-				console.log(errorDetails);
 				if (errorDetails) {
 					if (errorDetails['itemCost']) {
 						costError = errorDetails['itemCost'][0];
@@ -92,15 +94,36 @@
 		};
 	};
 
-	const submitDeleteWishlistItem: SubmitFunction = () => {
+	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
+		if (itemToDelete) {
+			formData.append('itemId', itemToDelete.id);
+		}
+		formData.append('wishlistId', data.wishlist.id);
+
 		return async ({ update }) => {
 			deleteItemModal?.close();
 			await update({ reset: true, invalidateAll: true });
 		};
 	};
 
-	const submitNameChange: SubmitFunction = () => {
-		return async ({ update }) => {
+	const submitNameChange: SubmitFunction = ({ formData }) => {
+		formData.append('newName', newWishlistName);
+		formData.append('oldName', data.wishlist.name);
+		formData.append('wishlistId', data.wishlist.id);
+
+		return async ({ update, result }) => {
+			if (result.type === 'failure') {
+				if (wishlistName) {
+					wishlistName.innerText = data.wishlist.name;
+				}
+				const failureData = result.data;
+				if (failureData) {
+					const errorCause: string | undefined = failureData['errorCause'];
+					if (errorCause) {
+						toast.error(errorCause);
+					}
+				}
+			}
 			isNameEditable = false;
 			await update({ reset: true, invalidateAll: true });
 		};
@@ -173,7 +196,6 @@
 			if (!selection) return;
 			selection.removeAllRanges();
 			selection.addRange(range);
-
 		}, 50);
 	};
 
@@ -271,9 +293,6 @@
 				<button class=" rounded-md border bg-white p-2 text-green-500 shadow-sm"
 					><Check size="20" /></button
 				>
-				<input hidden type="hidden" name="newName" value={newWishlistName} />
-				<input hidden type="hidden" name="oldName" value={data.wishlist.name} />
-				<input hidden type="hidden" name="wishlistId" value={data.wishlist.id} />
 			</form>
 		{/if}
 	</div>
@@ -398,8 +417,6 @@
 						Add to Wishlist
 					</button>
 				</span>
-
-				<input hidden type="hidden" class="hidden" name="wishlistId" value={data.wishlist.id} />
 			</form>
 		</div>
 	</Modal>
@@ -436,10 +453,9 @@
 				<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
 					<button
 						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
-						>Delete</button
 					>
-					<input hidden type="hidden" class="hidden" name="itemId" value={itemToDelete?.id} />
-					<input hidden type="hidden" class="hidden" name="wishlistId" value={data.wishlist.id} />
+						Delete
+					</button>
 				</form>
 			</div>
 		</div>

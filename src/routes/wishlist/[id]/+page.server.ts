@@ -49,16 +49,24 @@ export const actions = {
 
 		if (maybeItem.success) {
 			const item = maybeItem.data;
-			const newItem = await WishlistItemsService.createNewItem(
-				item.itemName,
-				item.itemUrl,
-				item.itemQuantity,
-				item.itemCost.toString(),
+			const wishlistToUpdate = await WishlistService.findByWishlistAndUserId(
 				item.wishlistId,
 				locals.user.id
 			);
-			if (newItem.length === 0) {
-				return fail(400, { message: 'Failed to create item' });
+			let newItem: WishlistItem | null = null;
+
+			if (wishlistToUpdate) {
+				newItem = await WishlistItemsService.createNewItem(
+					item.itemName,
+					item.itemUrl,
+					item.itemQuantity,
+					item.itemCost.toString(),
+					item.wishlistId
+				);
+			}
+
+			if (!newItem) {
+				return fail(400, { errorCause: 'Failed to create item', success: false });
 			}
 			return { success: true };
 		} else {
@@ -77,7 +85,7 @@ export const actions = {
 				locals.user.id
 			);
 			if (deletedItem.length === 0) {
-				return fail(400, { message: 'Failed to delete item' });
+				return fail(400, { errorCause: 'Failed to delete item', success: false });
 			}
 			return { success: true };
 		} else {
@@ -94,7 +102,7 @@ export const actions = {
 
 		if (newName !== null && oldName !== null && wishlistId !== null) {
 			if (newName.toString().trim().length == 0 || newName.toString() === oldName.toString()) {
-				return fail(400, { message: 'Name must be empty and cannot match old name' });
+				return fail(400, { errorCause: 'Name cannot be empty or match old name', success: false });
 			}
 
 			const updatedWishlist = await WishlistService.updateWishlistName(
@@ -102,11 +110,11 @@ export const actions = {
 				locals.user.id,
 				newName.toString()
 			);
-			if (updatedWishlist.length === 0) {
-				return fail(400, { message: 'Failed to update name' });
+			if (!updatedWishlist) {
+				return fail(400, { errorCause: 'Failed to update name', success: false });
 			}
 		} else {
-			return fail(400, { message: 'Failed to update name' });
+			return fail(400, { errorCause: 'Failed to update name', success: false });
 		}
 	}
 } satisfies Actions;

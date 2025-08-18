@@ -1,16 +1,15 @@
 <script lang="ts">
-	import { Lock, LockOpen, Plus, Share2, Trash2, TriangleAlert } from 'lucide-svelte';
+	import { Plus, TriangleAlert } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/modal.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { wishlistSchema } from '$lib/schema';
 	import toast from 'svelte-french-toast';
-	import { uuidToShortId } from '$lib';
+	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 
 	let modal: Modal;
-	let { data, form }: PageProps = $props();
+	let { data }: PageProps = $props();
 
 	let isModalOpen: boolean = $state(false);
 	let isCreatingNewWishlist: boolean = $state(false);
@@ -18,43 +17,41 @@
 	let isWishlistsLoading: boolean = $state(true);
 	let loadedWishlists: Wishlist[] = $state([]);
 
-	const submitDeleteWishlist: SubmitFunction = () => {
-		return async ({ update }) => {
+	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
+		formData.append('wishlistId', clickedWishlist);
+
+		return async ({ update, result }) => {
+			if (result.type === 'success') {
+				toast.success('Wishlist deleted');
+			}
+			if (result.type === 'failure') {
+				toast.error('Failed to delete wishlist');
+			}
+			if (result.type === 'error') {
+				toast.error('An error ocurred');
+			}
 			modal.close();
 			await update({ reset: true, invalidateAll: true });
-			toast.success('Wishlist deleted');
 		};
 	};
 
 	const submitCreateWishlist: SubmitFunction = () => {
 		isCreatingNewWishlist = true;
-		return async ({ update }) => {
+		return async ({ update, result }) => {
 			await update();
 			isCreatingNewWishlist = false;
-			if (form?.success) {
+			if (result.type === 'failure') {
+				toast.error('Could not create wishlist');
+			}
+			if (result.type === 'success') {
 				toast.success('New wishlist created');
-			} else {
-				toast.error('Cannot make more guest lists');
 			}
 		};
 	};
 
-	const submitLockWishlist: SubmitFunction = () => {
-		return async ({ result, update }) => {
-			if (result.type === 'success') {
-				const resultData = result.data;
-				if (resultData) {
-					const updatedWishlist = wishlistSchema.parse(resultData['wishlist'][0]);
-					loadedWishlists.forEach((loadedWishlist) => {
-						if (loadedWishlist.id === updatedWishlist.id) {
-							loadedWishlist.updatedAt = updatedWishlist.updatedAt;
-							loadedWishlist.isLocked = updatedWishlist.isLocked;
-						}
-					});
-				}
-			}
-			await update({ invalidateAll: false });
-		};
+	const updateModalVisibility = (clickedId: string) => {
+		isModalOpen = true;
+		clickedWishlist = clickedId;
 	};
 
 	$effect(() => {
@@ -64,54 +61,6 @@
 		});
 	});
 </script>
-
-{#snippet wishlistComponent(wishlist: Wishlist)}
-	<div class="flex h-44 w-[312px] flex-col justify-between rounded-lg bg-white pl-4 shadow-sm">
-		<div class="p-1">
-			<p class="font-bold">{wishlist.name}</p>
-			<p class="italic text-gray-400">{wishlist.isLocked ? 'Locked' : 'Unlocked'}</p>
-		</div>
-
-		<div class="flex items-center gap-3 pb-4">
-			<a
-				href={`/wishlist/${uuidToShortId(wishlist.id)}`}
-				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-			>
-				Expand
-			</a>
-			<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
-				<button
-					class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-					formaction="?/lockWishlist"
-				>
-					{#if wishlist.isLocked}
-						<Lock size="20" />
-					{:else}
-						<LockOpen size="20" />
-					{/if}
-				</button>
-				<input type="hidden" class="hidden" name="wishlistId" value={wishlist.id} />
-				<input type="hidden" class="hidden" name="isLocked" value={wishlist.isLocked} />
-			</form>
-			<button
-				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-				type="button"
-			>
-				<Share2 size="20" />
-			</button>
-			<button
-				class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85"
-				type="button"
-				onclick={() => {
-					isModalOpen = true;
-					clickedWishlist = wishlist.id;
-				}}
-			>
-				<Trash2 size="20" />
-			</button>
-		</div>
-	</div>
-{/snippet}
 
 {#snippet addMore()}
 	<div
@@ -134,7 +83,13 @@
 			<div>Loading...</div>
 		{:else}
 			{#each loadedWishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
-				<li>{@render wishlistComponent(wishlist)}</li>
+				<li>
+					<WishlistBlock
+						{loadedWishlists}
+						{wishlist}
+						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
+					/>
+				</li>
 			{/each}
 
 			<li>
@@ -188,7 +143,6 @@
 						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
 						>Delete</button
 					>
-					<input type="hidden" class="hidden" name="wishlistId" value={clickedWishlist} />
 				</form>
 			</div>
 		</div>

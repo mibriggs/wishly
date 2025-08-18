@@ -1,0 +1,112 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
+	import { uuidToShortId } from '$lib';
+	import { wishlistSchema } from '$lib/schema';
+	import type { Wishlist } from '$lib/server/db/schema';
+	import type { SubmitFunction } from '@sveltejs/kit';
+	import { Lock, LockOpen, Share2, Trash2 } from 'lucide-svelte';
+	import toast from 'svelte-french-toast';
+
+	interface Props {
+		wishlist: Wishlist;
+		loadedWishlists: Wishlist[];
+		onDeleteClicked: () => void;
+	}
+
+	let { wishlist, loadedWishlists, onDeleteClicked }: Props = $props();
+
+	const submitLockWishlist: SubmitFunction = ({ formData }) => {
+		formData.append('wishlistId', wishlist.id);
+		formData.append('isLocked', `${wishlist.isLocked}`);
+
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				const resultData = result.data;
+				if (resultData) {
+					const updatedWishlist = wishlistSchema.parse(resultData['wishlist']);
+					loadedWishlists.forEach((loadedWishlist) => {
+						if (loadedWishlist.id === updatedWishlist.id) {
+							loadedWishlist.updatedAt = updatedWishlist.updatedAt;
+							loadedWishlist.isLocked = updatedWishlist.isLocked;
+						}
+					});
+				}
+			}
+			await update({ invalidateAll: false });
+		};
+	};
+
+	const submitShareWishlist: SubmitFunction = ({ formData }) => {
+		formData.append('wishlistId', wishlist.id);
+
+		return async ({ result, update }) => {
+			if (result.type === 'success') {
+				const data = result.data;
+				
+				if (data) {
+					const link = data["link"];
+					if (typeof link === 'string') {
+						toast.success('Link copied to clipboard!');
+						copyText(`${page.url.href}share/${link}`);
+					}
+				}
+			}
+			await update();
+		};
+	};
+
+	const copyText = async (text: string) => {
+		try {
+			await navigator.clipboard.writeText(text);
+			console.log('Copied:', text);
+		} catch (err) {
+			console.error('Failed to copy:', err);
+		}
+	};
+</script>
+
+<div class="flex h-44 w-[312px] flex-col justify-between rounded-lg bg-white pl-4 shadow-sm">
+	<div class="p-1">
+		<p class="font-bold">{wishlist.name}</p>
+		<p class="italic text-gray-400">{wishlist.isLocked ? 'Locked' : 'Unlocked'}</p>
+	</div>
+
+	<div class="flex items-center gap-3 pb-4">
+		<a
+			href={`/wishlist/${uuidToShortId(wishlist.id)}`}
+			class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+		>
+			Expand
+		</a>
+		<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
+			<button
+				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+				formaction="?/lockWishlist"
+			>
+				{#if wishlist.isLocked}
+					<Lock size="20" />
+				{:else}
+					<LockOpen size="20" />
+				{/if}
+			</button>
+		</form>
+
+		<form method="POST" class="w-fit" use:enhance={submitShareWishlist}>
+			<button
+				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+				formaction="?/shareWishlist"
+			>
+				<Share2 size="20" />
+			</button>
+		</form>
+
+		<button
+			class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85"
+			type="button"
+			onclick={onDeleteClicked}
+		>
+			<Trash2 size="20" />
+		</button>
+	</div>
+</div>

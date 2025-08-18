@@ -1,5 +1,14 @@
-import { type InferSelectModel } from 'drizzle-orm';
-import { boolean, decimal, integer, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { isNull, sql, type InferSelectModel } from 'drizzle-orm';
+import {
+	boolean,
+	decimal,
+	integer,
+	pgTable,
+	timestamp,
+	uniqueIndex,
+	uuid,
+	varchar
+} from 'drizzle-orm/pg-core';
 import { u8bytea } from './custom-types';
 
 export const userTable = pgTable('users', {
@@ -18,7 +27,7 @@ export const userTable = pgTable('users', {
 	city: varchar('city', { length: 255 }),
 	state: varchar('state', { length: 255 }),
 	zipCode: integer('zip_code'),
-	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
 });
 
 export const sessionTable = pgTable('sessions', {
@@ -47,14 +56,13 @@ export const wishlistTable = pgTable('wishlists', {
 	isLocked: boolean('is_locked').default(false).notNull(),
 	isDeleted: boolean('is_deleted').default(false).notNull(),
 	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
-	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).defaultNow(),
-	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
 });
 
 // TODO: notes, sizes etc
 // TODO: a way to claim or show intent of buying, lastly isBought? by who etc...
 // TODO: a way to show if it has been claimed etc...
-// TODO: shared link
 export const wishlistItemTable = pgTable('wishlist_items', {
 	id: uuid('id').defaultRandom().primaryKey().unique(),
 	wishlistId: uuid('wishlist_id')
@@ -67,11 +75,28 @@ export const wishlistItemTable = pgTable('wishlist_items', {
 	imageUrl: varchar('image_url', { length: 255 }),
 	isDeleted: boolean('is_deleted').default(false).notNull(),
 	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
-	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).defaultNow().notNull(),
-	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).defaultNow()
+	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
 });
+
+export const sharedWishlistTable = pgTable(
+	'shared_wishlists',
+	{
+		id: uuid('id').defaultRandom().primaryKey().unique(),
+		wishlistId: uuid('wishlist_id')
+			.references(() => wishlistTable.id)
+			.notNull(),
+		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
+		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
+	},
+	(table) => [
+		uniqueIndex('one_null_date_per_fk').on(table.deletedAt).where(isNull(table.deletedAt))
+	]
+);
 
 export type WishlistItem = InferSelectModel<typeof wishlistItemTable>;
 export type Wishlist = InferSelectModel<typeof wishlistTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
 export type User = InferSelectModel<typeof userTable>;
+export type SharedWishlist = InferSelectModel<typeof sharedWishlistTable>;

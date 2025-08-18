@@ -41,7 +41,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		headers: headers
 	});
 
-	const response = (await discordUserResponse.json()) as unknown; // TODO: Better Validation
+	const response = (await discordUserResponse.json()) as unknown;
 	const maybeDiscordUser = discordUserSchema.safeParse(response);
 
 	if (maybeDiscordUser.error) {

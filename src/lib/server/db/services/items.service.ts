@@ -2,40 +2,29 @@ import { and, eq, inArray, sql } from 'drizzle-orm';
 import { WishlistService } from './wishlist.service';
 import { db } from '..';
 import { wishlistItemTable, type WishlistItem, wishlistTable } from '../schema';
+import { getSingleObjectOrNull } from '$lib';
 
 export class WishlistItemsService {
 	constructor() {}
-
-	static async findByWishlistId(wishlistId: string) {
-		return await db
-			.select()
-			.from(wishlistItemTable)
-			.where(eq(wishlistItemTable.wishlistId, wishlistId));
-	}
 
 	static async createNewItem(
 		itemName: string,
 		itemUrl: string,
 		itemQuantity: number,
 		itemPrice: string,
-		wishlistId: string,
-		userId: string
+		wishlistId: string
 	) {
-		const listToUpdate = await WishlistService.findByWishlistAndUserId(wishlistId, userId);
-		if (listToUpdate.length > 0) {
-			const items: WishlistItem[] = await db
-				.insert(wishlistItemTable)
-				.values({
-					wishlistId: wishlistId,
-					itemName: itemName,
-					price: itemPrice,
-					quantity: itemQuantity,
-					url: itemUrl
-				})
-				.returning();
-			return items;
-		}
-		return [];
+		const items: WishlistItem[] = await db
+			.insert(wishlistItemTable)
+			.values({
+				wishlistId: wishlistId,
+				itemName: itemName,
+				price: itemPrice,
+				quantity: itemQuantity,
+				url: itemUrl
+			})
+			.returning();
+		return getSingleObjectOrNull<WishlistItem>(items);
 	}
 
 	static async deleteItem(itemId: string, wishlistId: string, userId: string) {

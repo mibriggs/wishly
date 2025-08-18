@@ -23,7 +23,7 @@
 
 	<!-- phone screens -->
 	<div
-		class="flex w-full items-start justify-between gap-4 rounded-md border border-black bg-white p-3 sm:hidden"
+		class="flex w-full items-start justify-start gap-4 rounded-md border border-black bg-white p-3 sm:hidden"
 	>
 		<p class="rounded-md bg-neutral-300 px-4 py-3">📦</p>
 

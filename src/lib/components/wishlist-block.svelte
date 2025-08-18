@@ -12,9 +12,10 @@
 		wishlist: Wishlist;
 		loadedWishlists: Wishlist[];
 		onDeleteClicked: () => void;
+		onShareClicked: (link: string) => void;
 	}
 
-	let { wishlist, loadedWishlists, onDeleteClicked }: Props = $props();
+	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked }: Props = $props();
 
 	const submitLockWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', wishlist.id);
@@ -47,22 +48,12 @@
 				if (data) {
 					const link = data['link'];
 					if (typeof link === 'string') {
-						toast.success('Link copied to clipboard!');
-						copyText(`${page.url.href}share/${link}`);
+						onShareClicked(`${page.url.href}share/${link}`);
 					}
 				}
 			}
 			await update();
 		};
-	};
-
-	const copyText = async (text: string) => {
-		try {
-			await navigator.clipboard.writeText(text);
-			console.log('Copied:', text);
-		} catch (err) {
-			console.error('Failed to copy:', err);
-		}
 	};
 </script>
 

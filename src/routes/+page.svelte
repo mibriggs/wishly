@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, TriangleAlert } from 'lucide-svelte';
+	import { ClipboardCheck, Plus, TriangleAlert } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';
@@ -8,14 +8,19 @@
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 
-	let modal: Modal;
+	let deleteWishlistModal: Modal;
+	let copyWishlistModal: Modal;
+
 	let { data }: PageProps = $props();
 
-	let isModalOpen: boolean = $state(false);
+	let isDeleteModalOpen: boolean = $state(false);
+	let isCopyModalOpen: boolean = $state(false);
+
 	let isCreatingNewWishlist: boolean = $state(false);
 	let clickedWishlist: string = $state('');
 	let isWishlistsLoading: boolean = $state(true);
 	let loadedWishlists: Wishlist[] = $state([]);
+	let shareLink: string = $state('');
 
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
@@ -30,7 +35,7 @@
 			if (result.type === 'error') {
 				toast.error('An error ocurred');
 			}
-			modal.close();
+			deleteWishlistModal.close();
 			await update({ reset: true, invalidateAll: true });
 		};
 	};
@@ -50,8 +55,28 @@
 	};
 
 	const updateModalVisibility = (clickedId: string) => {
-		isModalOpen = true;
+		isDeleteModalOpen = true;
 		clickedWishlist = clickedId;
+	};
+
+	const openCopyModal = (link: string) => {
+		isCopyModalOpen = true;
+		shareLink = link;
+	};
+
+	const copyToClipboard = () => {
+		copyText(shareLink);
+		toast.success('Link copied to clipboard!');
+		copyWishlistModal.close();
+	};
+
+	const copyText = async (text: string) => {
+		try {
+			await navigator.clipboard.writeText(text);
+			console.log('Copied:', text);
+		} catch (err) {
+			console.error('Failed to copy:', err);
+		}
 	};
 
 	$effect(() => {
@@ -88,6 +113,7 @@
 						{loadedWishlists}
 						{wishlist}
 						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
+						onShareClicked={(link) => openCopyModal(link)}
 					/>
 				</li>
 			{/each}
@@ -112,15 +138,15 @@
 
 	<Modal
 		id="delete-wishlist-modal"
-		isOpen={isModalOpen}
-		onModalClose={() => (isModalOpen = !isModalOpen)}
+		isOpen={isDeleteModalOpen}
+		onModalClose={() => (isDeleteModalOpen = !isDeleteModalOpen)}
 		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-		bind:this={modal}
+		bind:this={deleteWishlistModal}
 	>
 		<div class="flex flex-col items-center gap-3">
 			<button
 				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
-				onclick={() => modal.close()}
+				onclick={() => deleteWishlistModal.close()}
 			>
 				&times;
 			</button>
@@ -136,7 +162,7 @@
 			<div class="flex items-center justify-center gap-2">
 				<button
 					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-					onclick={() => modal.close()}>Cancel</button
+					onclick={() => deleteWishlistModal.close()}>Cancel</button
 				>
 				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
 					<button
@@ -144,6 +170,44 @@
 						>Delete</button
 					>
 				</form>
+			</div>
+		</div>
+	</Modal>
+
+	<Modal
+		id="copy-wishlist-modal"
+		isOpen={isCopyModalOpen}
+		onModalClose={() => (isCopyModalOpen = !isCopyModalOpen)}
+		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+		bind:this={copyWishlistModal}
+	>
+		<div class="flex flex-col items-center gap-3">
+			<button
+				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
+				onclick={() => copyWishlistModal.close()}
+			>
+				&times;
+			</button>
+			<span class="rounded-md bg-blue-100 p-3 text-blue-500">
+				<ClipboardCheck />
+			</span>
+			<span class="flex flex-col items-center justify-center gap-1">
+				<p class="text-2xl font-bold">Are you sure?</p>
+				<p class="text-md text-center text-neutral-500">
+					<b>{shareLink}</b> will be copied to clipboard
+				</p>
+			</span>
+			<div class="flex items-center justify-center gap-2">
+				<button
+					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
+					onclick={() => copyWishlistModal.close()}>Cancel</button
+				>
+				<button
+					class="transform select-none rounded-md border-2 border-blue-500 bg-blue-100 px-4 py-2 text-blue-500 shadow-lg transition duration-100 active:scale-90"
+					onclick={copyToClipboard}
+				>
+					Copy
+				</button>
 			</div>
 		</div>
 	</Modal>

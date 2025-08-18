@@ -103,8 +103,7 @@ export const actions = {
 				const newLink = await SharedWishlistService.createSharedLink(wishlistId);
 				if (newLink) {
 					newShareLink = newLink.id;
-				}
-				else {
+				} else {
 					newShareLink = null;
 				}
 			}

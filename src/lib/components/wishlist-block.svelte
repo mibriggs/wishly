@@ -43,9 +43,9 @@
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
 				const data = result.data;
-				
+
 				if (data) {
-					const link = data["link"];
+					const link = data['link'];
 					if (typeof link === 'string') {
 						toast.success('Link copied to clipboard!');
 						copyText(`${page.url.href}share/${link}`);

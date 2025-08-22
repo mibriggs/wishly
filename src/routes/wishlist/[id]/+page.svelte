@@ -365,7 +365,7 @@
 					<span class="flex items-center gap-1 text-2xl">
 						<label for="itemCost" class="select-none">$</label>
 						<input
-							type="number"
+							type="text"
 							inputmode="decimal"
 							placeholder="00.00"
 							class={twJoin('w-fit border-none focus:outline-none', costError && 'border-red-500')}

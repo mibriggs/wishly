@@ -11,33 +11,11 @@
 	import { fade, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
+	import { WishlistItemStateClass } from './item-state.svelte';
 
-	let { data, form }: PageProps = $props();
+	let { data }: PageProps = $props();
 
-	let newWishlistName: string = $state('');
-	let isNameEditable: boolean = $state(false);
-	let isModalOpen: boolean = $state(false);
-	let isDeleteItemModalOpen: boolean = $state(false);
-	let itemToDelete: WishlistItem | undefined = $state();
-	let newItemModal: Modal | undefined = $state();
-	let deleteItemModal: Modal | undefined = $state();
-	let wishlistName: HTMLHeadingElement | undefined = $state();
-	let {
-		itemName,
-		itemUrl,
-		itemQuantity,
-		itemCost
-	}: {
-		itemName: string;
-		itemUrl: string;
-		itemQuantity: number;
-		itemCost: number | undefined;
-	} = $state({
-		itemName: '',
-		itemUrl: '',
-		itemQuantity: 1,
-		itemCost: undefined
-	});
+	const itemState = new WishlistItemStateClass();
 	let {
 		nameError,
 		urlError,
@@ -67,6 +45,7 @@
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', data.wishlist.id);
+		formData.append('itemQuantity', `${itemState.quantity}`)
 
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
@@ -87,34 +66,36 @@
 				}
 				await update({ reset: false, invalidateAll: false });
 			} else {
-				newItemModal?.close();
+				itemState.closeModal('NEW');
+				itemState.reset();
 				resetInputs();
+
 				await update();
 			}
 		};
 	};
 
 	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
-		if (itemToDelete) {
-			formData.append('itemId', itemToDelete.id);
+		if (itemState.itemToDelete) {
+			formData.append('itemId', itemState.itemToDelete.id);
 		}
 		formData.append('wishlistId', data.wishlist.id);
 
 		return async ({ update }) => {
-			deleteItemModal?.close();
+			itemState.closeModal('DELETE');
 			await update({ reset: true, invalidateAll: true });
 		};
 	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
-		formData.append('newName', newWishlistName);
+		formData.append('newName', itemState.newName);
 		formData.append('oldName', data.wishlist.name);
 		formData.append('wishlistId', data.wishlist.id);
 
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
-				if (wishlistName) {
-					wishlistName.innerText = data.wishlist.name;
+				if (itemState.wishlistNameElement) {
+					itemState.wishlistNameElement.innerText = data.wishlist.name;
 				}
 				const failureData = result.data;
 				if (failureData) {
@@ -124,16 +105,12 @@
 					}
 				}
 			}
-			isNameEditable = false;
+			itemState.isNameEditable = false;
 			await update({ reset: true, invalidateAll: true });
 		};
 	};
 
 	const resetInputs = () => {
-		itemName = '';
-		itemUrl = '';
-		itemQuantity = 1;
-		itemCost = undefined;
 		nameError = undefined;
 		urlError = undefined;
 		quantityError = '';
@@ -142,7 +119,7 @@
 
 	const validateItemName = () => {
 		const itemNameSchema = newItemSchema.shape.itemName;
-		const result = itemNameSchema.safeParse(itemName);
+		const result = itemNameSchema.safeParse(itemState.name);
 		if (!result.success) {
 			const error = result.error.flatten().formErrors[0];
 			nameError = error;
@@ -153,7 +130,7 @@
 
 	const validateItemUrl = () => {
 		const itemUrlSchema = newItemSchema.shape.itemUrl;
-		const result = itemUrlSchema.safeParse(itemUrl);
+		const result = itemUrlSchema.safeParse(itemState.url);
 		if (!result.success) {
 			const error = result.error.flatten().formErrors[0];
 			urlError = error;
@@ -164,7 +141,7 @@
 
 	const validateItemCost = () => {
 		const itemCostSchema = newItemSchema.shape.itemCost;
-		const result = itemCostSchema.safeParse(itemCost);
+		const result = itemCostSchema.safeParse(itemState.cost);
 		if (!result.success) {
 			const error = result.error.flatten().formErrors[0];
 			costError = error;
@@ -174,22 +151,22 @@
 	};
 
 	const handleItemDelete = (selectedItem: WishlistItem) => {
-		itemToDelete = selectedItem;
-		isDeleteItemModalOpen = true;
+		itemState.itemToDelete = selectedItem;
+		itemState.isDeleteItemModalOpen = true;
 	};
 
 	const handleEditName = async () => {
-		isNameEditable = true;
+		itemState.isNameEditable = true;
 
 		await tick();
 
-		wishlistName?.focus();
+		itemState.wishlistNameElement?.focus();
 
 		setTimeout(() => {
-			if (!wishlistName) return;
+			if (!itemState.wishlistNameElement) return;
 
 			const range = document.createRange();
-			range.selectNodeContents(wishlistName);
+			range.selectNodeContents(itemState.wishlistNameElement);
 
 			const selection = window.getSelection();
 
@@ -200,17 +177,17 @@
 	};
 
 	const handleInput = () => {
-		const currentWishlistName = wishlistName?.innerText.trim();
+		const currentWishlistName = itemState.wishlistNameElement?.innerText.trim();
 		if (currentWishlistName) {
-			newWishlistName = currentWishlistName;
+			itemState.newName = currentWishlistName;
 		}
 	};
 
 	const revertWishlistName = () => {
-		isNameEditable = false;
+		itemState.isNameEditable  = false;
 
-		if (wishlistName) {
-			wishlistName.innerText = data.wishlist.name;
+		if (itemState.wishlistNameElement) {
+			itemState.wishlistNameElement.innerText = data.wishlist.name;
 		}
 	};
 </script>
@@ -274,15 +251,15 @@
 <main class="w-full p-4">
 	<div class="mb-4 flex items-center gap-4">
 		<h1
-			bind:this={wishlistName}
+			bind:this={itemState.wishlistNameElement}
 			class="py-2 text-xl font-bold focus:bg-white"
 			oninput={handleInput}
-			contenteditable={isNameEditable}
+			contenteditable={itemState.isNameEditable }
 			dir="ltr"
 		>
 			{data.wishlist.name}
 		</h1>
-		{#if !isNameEditable}
+		{#if !itemState.isNameEditable }
 			<button class="p-2" onclick={handleEditName}><Pencil size="20" /></button>
 		{:else}
 			<button
@@ -326,7 +303,7 @@
 	<button
 		aria-label="open new item modal"
 		class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-6 py-1 text-neutral-100 transition duration-100 active:scale-90"
-		onclick={() => (isModalOpen = true)}
+		onclick={() => (itemState.isNewItemModalOpen = true)}
 	>
 		<Plus size={16} />
 		<p>Add an item</p>
@@ -334,9 +311,9 @@
 
 	<Modal
 		id="new-item-modal"
-		bind:this={newItemModal}
-		isOpen={isModalOpen}
-		onModalClose={() => (isModalOpen = !isModalOpen)}
+		bind:this={itemState.newItemModal}
+		isOpen={itemState.isNewItemModalOpen }
+		onModalClose={() => itemState.updateModalState(!itemState.isNewItemModalOpen, 'NEW')}
 		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
 	>
 		<div class="flex w-full flex-col gap-1">
@@ -344,7 +321,7 @@
 				class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
 				type="button"
 				aria-label="close new item modal"
-				onclick={() => newItemModal?.close()}
+				onclick={() => itemState.closeModal('NEW')}
 			>
 				&times;
 			</button>
@@ -359,7 +336,7 @@
 							nameError && 'border-red-500'
 						)}
 						onchange={validateItemName}
-						bind:value={itemName}
+						bind:value={itemState.name}
 					/>
 					<span class="h-4 text-sm italic text-red-500">{nameError}</span>
 				</span>
@@ -374,15 +351,14 @@
 							urlError && 'border-red-500'
 						)}
 						onchange={validateItemUrl}
-						bind:value={itemUrl}
+						bind:value={itemState.url}
 					/>
 					<p class="h-4 text-sm italic text-red-500">{urlError}</p>
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
-					<NumberStepper bind:value={itemQuantity} />
+					<NumberStepper bind:value={itemState.quantity} />
 					<p class="h-4 text-sm italic text-red-500">{quantityError}</p>
-					<input hidden type="hidden" class="hidden" name="itemQuantity" value={itemQuantity} />
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
@@ -396,7 +372,7 @@
 							id="itemCost"
 							name="itemCost"
 							onchange={validateItemCost}
-							bind:value={itemCost}
+							bind:value={itemState.cost}
 						/>
 					</span>
 					<p class="h-4 text-sm italic text-red-500">{costError}</p>
@@ -406,7 +382,7 @@
 						type="button"
 						aria-label="close new item modal"
 						class="transform cursor-pointer select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-						onclick={() => newItemModal?.close()}>Cancel</button
+						onclick={() => itemState.closeModal('NEW')}>Cancel</button
 					>
 					<button
 						formaction="?/createWishlistItem"
@@ -423,15 +399,15 @@
 
 	<Modal
 		id="delete-item-modal"
-		onModalClose={() => (isDeleteItemModalOpen = !isDeleteItemModalOpen)}
-		isOpen={isDeleteItemModalOpen}
+		bind:this={itemState.deleteItemModal}
+		isOpen={itemState.isDeleteItemModalOpen}
+		onModalClose={() => itemState.updateModalState(!itemState.deleteItemModal, 'DELETE')}
 		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-		bind:this={deleteItemModal}
 	>
 		<div class="flex flex-col items-center gap-3">
 			<button
 				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 active:scale-90"
-				onclick={() => deleteItemModal?.close()}
+				onclick={() => itemState.closeModal('DELETE')}
 			>
 				&times;
 			</button>
@@ -441,14 +417,14 @@
 			<span class="flex flex-col items-center justify-center gap-1">
 				<p class="text-2xl font-bold">Are you sure?</p>
 				<p class="text-md text-center text-neutral-500">
-					Are you sure you want to delete <span class="font-bold">{itemToDelete?.itemName}</span>?
+					Are you sure you want to delete <span class="font-bold">{itemState.itemToDelete?.itemName}</span>?
 					This action cannot be undone.
 				</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
 				<button
 					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-					onclick={() => deleteItemModal?.close()}>Cancel</button
+					onclick={() => itemState.closeModal('DELETE')}>Cancel</button
 				>
 				<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
 					<button

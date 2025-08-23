@@ -4,7 +4,6 @@
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { newItemSchema } from '$lib/schema';
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type WishlistItem } from '$lib/server/db/schema';
@@ -12,64 +11,30 @@
 	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
 	import { WishlistItemStateClass } from './item-state.svelte';
+	import { ValidationStateClass } from './validation-state.svelte';
 
 	let { data }: PageProps = $props();
 
 	const itemState = new WishlistItemStateClass();
-	let {
-		nameError,
-		urlError,
-		quantityError,
-		costError
-	}: {
-		nameError: string | undefined;
-		urlError: string | undefined;
-		quantityError: string | undefined;
-		costError: string | undefined;
-	} = $state({
-		nameError: undefined,
-		urlError: undefined,
-		quantityError: '',
-		costError: undefined
-	});
-
+	const validationState = new ValidationStateClass();
 	const visibleItems = $derived(data.items.filter((item) => !item.isDeleted));
-	const disabled: boolean = $derived.by(() => {
-		const hasNameError: boolean = nameError === undefined || nameError !== '';
-		const hasUrlError: boolean = urlError === undefined || urlError !== '';
-		const hasCountError: boolean = quantityError === undefined || quantityError !== '';
-		const hasPriceError: boolean = costError === undefined || costError !== '';
-
-		return hasNameError || hasUrlError || hasCountError || hasPriceError;
-	});
+	const disabled = $derived(validationState.disabled);
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', data.wishlist.id);
-		formData.append('itemQuantity', `${itemState.quantity}`)
+		formData.append('itemQuantity', `${itemState.quantity}`);
 
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
 				const errorDetails = result.data;
 				if (errorDetails) {
-					if (errorDetails['itemCost']) {
-						costError = errorDetails['itemCost'][0];
-					}
-					if (errorDetails['itemName']) {
-						nameError = errorDetails['itemName'][0];
-					}
-					if (errorDetails['itemUrl']) {
-						urlError = errorDetails['itemUrl'][0];
-					}
-					if (errorDetails['itemQuantity']) {
-						quantityError = errorDetails['itemQuantity'][0];
-					}
+					validationState.updateErrors(errorDetails);
 				}
 				await update({ reset: false, invalidateAll: false });
 			} else {
 				itemState.closeModal('NEW');
 				itemState.reset();
-				resetInputs();
-
+				validationState.reset();
 				await update();
 			}
 		};
@@ -110,46 +75,6 @@
 		};
 	};
 
-	const resetInputs = () => {
-		nameError = undefined;
-		urlError = undefined;
-		quantityError = '';
-		costError = undefined;
-	};
-
-	const validateItemName = () => {
-		const itemNameSchema = newItemSchema.shape.itemName;
-		const result = itemNameSchema.safeParse(itemState.name);
-		if (!result.success) {
-			const error = result.error.flatten().formErrors[0];
-			nameError = error;
-		} else {
-			nameError = '';
-		}
-	};
-
-	const validateItemUrl = () => {
-		const itemUrlSchema = newItemSchema.shape.itemUrl;
-		const result = itemUrlSchema.safeParse(itemState.url);
-		if (!result.success) {
-			const error = result.error.flatten().formErrors[0];
-			urlError = error;
-		} else {
-			urlError = '';
-		}
-	};
-
-	const validateItemCost = () => {
-		const itemCostSchema = newItemSchema.shape.itemCost;
-		const result = itemCostSchema.safeParse(itemState.cost);
-		if (!result.success) {
-			const error = result.error.flatten().formErrors[0];
-			costError = error;
-		} else {
-			costError = '';
-		}
-	};
-
 	const handleItemDelete = (selectedItem: WishlistItem) => {
 		itemState.itemToDelete = selectedItem;
 		itemState.isDeleteItemModalOpen = true;
@@ -184,7 +109,7 @@
 	};
 
 	const revertWishlistName = () => {
-		itemState.isNameEditable  = false;
+		itemState.isNameEditable = false;
 
 		if (itemState.wishlistNameElement) {
 			itemState.wishlistNameElement.innerText = data.wishlist.name;
@@ -254,12 +179,12 @@
 			bind:this={itemState.wishlistNameElement}
 			class="py-2 text-xl font-bold focus:bg-white"
 			oninput={handleInput}
-			contenteditable={itemState.isNameEditable }
+			contenteditable={itemState.isNameEditable}
 			dir="ltr"
 		>
 			{data.wishlist.name}
 		</h1>
-		{#if !itemState.isNameEditable }
+		{#if !itemState.isNameEditable}
 			<button class="p-2" onclick={handleEditName}><Pencil size="20" /></button>
 		{:else}
 			<button
@@ -312,7 +237,7 @@
 	<Modal
 		id="new-item-modal"
 		bind:this={itemState.newItemModal}
-		isOpen={itemState.isNewItemModalOpen }
+		isOpen={itemState.isNewItemModalOpen}
 		onModalClose={() => itemState.updateModalState(!itemState.isNewItemModalOpen, 'NEW')}
 		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
 	>
@@ -333,12 +258,12 @@
 						placeholder="Product name..."
 						class={twJoin(
 							'w-3/4 rounded-md border p-1 focus:outline-none',
-							nameError && 'border-red-500'
+							validationState.nameError && 'border-red-500'
 						)}
-						onchange={validateItemName}
+						onchange={() => validationState.validateName(itemState.name)}
 						bind:value={itemState.name}
 					/>
-					<span class="h-4 text-sm italic text-red-500">{nameError}</span>
+					<span class="h-4 text-sm italic text-red-500">{validationState.nameError}</span>
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
@@ -348,17 +273,17 @@
 						placeholder="Url..."
 						class={twJoin(
 							'w-3/4 rounded-md border p-1 focus:outline-none',
-							urlError && 'border-red-500'
+							validationState.urlError && 'border-red-500'
 						)}
-						onchange={validateItemUrl}
+						onchange={() => validationState.validateUrl(itemState.url)}
 						bind:value={itemState.url}
 					/>
-					<p class="h-4 text-sm italic text-red-500">{urlError}</p>
+					<p class="h-4 text-sm italic text-red-500">{validationState.urlError}</p>
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
 					<NumberStepper bind:value={itemState.quantity} />
-					<p class="h-4 text-sm italic text-red-500">{quantityError}</p>
+					<p class="h-4 text-sm italic text-red-500">{validationState.quantityError}</p>
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
@@ -368,14 +293,17 @@
 							type="text"
 							inputmode="decimal"
 							placeholder="00.00"
-							class={twJoin('w-fit border-none focus:outline-none', costError && 'border-red-500')}
+							class={twJoin(
+								'w-fit border-none focus:outline-none',
+								validationState.costError && 'border-red-500'
+							)}
 							id="itemCost"
 							name="itemCost"
-							onchange={validateItemCost}
+							onchange={() => validationState.validateCost(itemState.cost)}
 							bind:value={itemState.cost}
 						/>
 					</span>
-					<p class="h-4 text-sm italic text-red-500">{costError}</p>
+					<p class="h-4 text-sm italic text-red-500">{validationState.costError}</p>
 				</span>
 				<span class="mt-1 flex gap-2 self-center">
 					<button
@@ -417,8 +345,9 @@
 			<span class="flex flex-col items-center justify-center gap-1">
 				<p class="text-2xl font-bold">Are you sure?</p>
 				<p class="text-md text-center text-neutral-500">
-					Are you sure you want to delete <span class="font-bold">{itemState.itemToDelete?.itemName}</span>?
-					This action cannot be undone.
+					Are you sure you want to delete <span class="font-bold"
+						>{itemState.itemToDelete?.itemName}</span
+					>? This action cannot be undone.
 				</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
@@ -439,16 +368,6 @@
 </main>
 
 <style>
-	input[type='number']::-webkit-outer-spin-button,
-	input[type='number']::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
-
-	input[type='number'] {
-		-moz-appearance: textfield;
-	}
-
 	h1[contenteditable='true'] {
 		padding-left: 0.5rem;
 		padding-right: 0.5rem;

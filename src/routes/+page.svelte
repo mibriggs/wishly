@@ -193,9 +193,7 @@
 			</span>
 			<span class="flex flex-col items-center justify-center gap-1">
 				<p class="text-2xl font-bold">Are you sure?</p>
-				<p class="text-md text-center text-neutral-500">
-					This link will be copied to clipboard
-				</p>
+				<p class="text-md text-center text-neutral-500">This link will be copied to clipboard</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
 				<button

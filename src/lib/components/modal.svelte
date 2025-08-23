@@ -15,7 +15,7 @@
 	let isClosing: boolean = $state(false);
 
 	$effect(() => {
-		modal.addEventListener('click', closeWithOutsideTap);
+		modal.onclick = closeWithOutsideTap;
 	});
 
 	$effect(() => {
@@ -37,7 +37,7 @@
 
 	const closeModal = () => {
 		isClosing = true;
-		closeModalHelper();
+		modal.addEventListener('animationend', closeModalHelper, { once: true });
 		onModalClose();
 	};
 
@@ -55,8 +55,6 @@
 >
 	{#if children}
 		{@render children()}
-	{:else}
-		<div>Is this thing on</div>
 	{/if}
 </dialog>
 
@@ -94,18 +92,18 @@
 		}
 	}
 
-	#modal[open] {
+	dialog[open] {
 		animation:
-			slide-up 350ms forwards,
-			fade-in 350ms forwards;
+			slide-up 500ms forwards,
+			fade-in 500ms forwards;
 	}
 
-	#modal[data-closing='true'] {
+	dialog[data-closing='true'] {
 		display: block;
 		pointer-events: none;
 		inset: 0;
 		animation:
-			slide-down 275ms forwards,
-			fade-out 275ms forwards;
+			slide-down 500ms forwards,
+			fade-out 500ms forwards;
 	}
 </style>

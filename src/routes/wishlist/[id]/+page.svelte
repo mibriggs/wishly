@@ -12,6 +12,7 @@
 	import toast from 'svelte-french-toast';
 	import { WishlistItemStateClass } from './item-state.svelte';
 	import { ValidationStateClass } from './validation-state.svelte';
+	import ErrorMessage from '$lib/components/error-message.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -263,7 +264,7 @@
 						onchange={() => validationState.validateName(itemState.name)}
 						bind:value={itemState.name}
 					/>
-					<span class="h-4 text-sm italic text-red-500">{validationState.nameError}</span>
+					<ErrorMessage message={validationState.nameError} />
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
@@ -278,32 +279,34 @@
 						onchange={() => validationState.validateUrl(itemState.url)}
 						bind:value={itemState.url}
 					/>
-					<p class="h-4 text-sm italic text-red-500">{validationState.urlError}</p>
+					<ErrorMessage message={validationState.urlError} />
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
 					<NumberStepper bind:value={itemState.quantity} />
-					<p class="h-4 text-sm italic text-red-500">{validationState.quantityError}</p>
+					<ErrorMessage message={validationState.quantityError} />
 				</span>
 
 				<span class="flex flex-col items-start justify-center gap-1">
-					<span class="flex items-center gap-1 text-2xl">
+					<span
+						class={twJoin(
+							'flex items-center gap-1 rounded-md text-2xl',
+							validationState.costError ? 'ring-1 ring-red-500' : 'ring-0'
+						)}
+					>
 						<label for="itemCost" class="select-none">$</label>
 						<input
 							type="text"
 							inputmode="decimal"
 							placeholder="00.00"
-							class={twJoin(
-								'w-fit border-none focus:outline-none',
-								validationState.costError && 'border-red-500'
-							)}
+							class="focus:outline-none"
 							id="itemCost"
 							name="itemCost"
 							onchange={() => validationState.validateCost(itemState.cost)}
 							bind:value={itemState.cost}
 						/>
 					</span>
-					<p class="h-4 text-sm italic text-red-500">{validationState.costError}</p>
+					<ErrorMessage message={validationState.costError} />
 				</span>
 				<span class="mt-1 flex gap-2 self-center">
 					<button

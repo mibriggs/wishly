@@ -8,7 +8,7 @@ const stringToNumberMinSchema = z
 		if (val.trim().length < 1) {
 			ctx.addIssue({
 				code: 'custom',
-				message: 'Invalid price'
+				message: 'Price cannot be empty'
 			});
 			return;
 		}
@@ -17,17 +17,17 @@ const stringToNumberMinSchema = z
 		if (isNaN(num)) {
 			ctx.addIssue({
 				code: 'custom',
-				message: 'Invalid price'
+				message: 'Must be numerical value'
 			});
 			return;
 		}
-		if (num < 0) {
+		if (num <= 0) {
 			ctx.addIssue({
 				code: 'too_small',
 				type: 'number',
 				minimum: 0,
-				inclusive: true,
-				message: 'Cannot have a negative price'
+				inclusive: false,
+				message: 'Price must be greater than $0'
 			});
 		}
 	})
@@ -56,12 +56,13 @@ export const newItemSchema = z.object({
 		.min(1, { message: 'Name is required' }),
 	itemUrl: z.string({ required_error: 'Url must be supplied' }).url(),
 	itemQuantity: z.coerce
-		.number({ required_error: 'Must have at least one item' })
+		.number({ required_error: 'You must have at least one item' })
 		.min(1, { message: 'You must have at least one item' }),
 	itemCost: z.union([
 		z
 			.number({ required_error: 'Price is required' })
-			.min(0, { message: 'Cannot have a negative price' }),
+			.positive({ message: 'Price must be greater than $0' })
+			.gt(0, { message: 'Price must be greater than $0' }),
 		stringToNumberMinSchema
 	])
 });

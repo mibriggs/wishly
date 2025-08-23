@@ -49,7 +49,6 @@ export class ValidationStateClass implements ValidationState {
 	}
 
 	validateUrl(url: string) {
-		console.log(url);
 		const itemUrlSchema = newItemSchema.shape.itemUrl;
 		const result = itemUrlSchema.safeParse(url);
 		if (!result.success) {

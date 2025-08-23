@@ -244,7 +244,7 @@
 	>
 		<div class="flex w-full flex-col gap-1">
 			<button
-				class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 focus:outline-none focus:ring-2 focus:ring-gray-400 active:scale-90"
+				class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
 				type="button"
 				aria-label="close new item modal"
 				onclick={() => itemState.closeModal('NEW')}
@@ -339,7 +339,7 @@
 	>
 		<div class="flex flex-col items-center gap-3">
 			<button
-				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md transition duration-100 focus:outline-none focus:ring-2 focus:ring-gray-400 active:scale-90"
+				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
 				onclick={() => itemState.closeModal('DELETE')}
 			>
 				&times;

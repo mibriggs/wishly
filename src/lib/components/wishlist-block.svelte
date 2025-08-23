@@ -6,16 +6,16 @@
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Lock, LockOpen, Share2, Trash2 } from 'lucide-svelte';
-	import toast from 'svelte-french-toast';
 
 	interface Props {
 		wishlist: Wishlist;
 		loadedWishlists: Wishlist[];
 		onDeleteClicked: () => void;
 		onShareClicked: (link: string) => void;
+		onLock: (id: string, isLocked: boolean, updatedAt: Date) => void;
 	}
 
-	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked }: Props = $props();
+	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked, onLock }: Props = $props();
 
 	const submitLockWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', wishlist.id);
@@ -28,8 +28,7 @@
 					const updatedWishlist = wishlistSchema.parse(resultData['wishlist']);
 					loadedWishlists.forEach((loadedWishlist) => {
 						if (loadedWishlist.id === updatedWishlist.id) {
-							loadedWishlist.updatedAt = updatedWishlist.updatedAt;
-							loadedWishlist.isLocked = updatedWishlist.isLocked;
+							onLock(loadedWishlist.id, updatedWishlist.isLocked, updatedWishlist.updatedAt);
 						}
 					});
 				}

@@ -79,6 +79,15 @@
 		}
 	};
 
+	const updateWishlistLock = (id: string, isLocked: boolean, updatedAt: Date) => {
+		loadedWishlists.forEach((wishlist) => {
+			if (wishlist.id === id) {
+				wishlist.isLocked = isLocked;
+				wishlist.updatedAt = updatedAt;
+			}
+		});
+	};
+
 	$effect(() => {
 		data.wishlists.then((wishlists) => {
 			loadedWishlists = wishlists;
@@ -112,8 +121,9 @@
 					<WishlistBlock
 						{loadedWishlists}
 						{wishlist}
+						onLock={updateWishlistLock}
+						onShareClicked={openCopyModal}
 						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
-						onShareClicked={(link) => openCopyModal(link)}
 					/>
 				</li>
 			{/each}

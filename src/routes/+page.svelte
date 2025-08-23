@@ -7,6 +7,7 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
+	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
 
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
@@ -16,35 +17,40 @@
 	let isDeleteModalOpen: boolean = $state(false);
 	let isCopyModalOpen: boolean = $state(false);
 
-	let isCreatingNewWishlist: boolean = $state(false);
 	let clickedWishlist: string = $state('');
 	let isWishlistsLoading: boolean = $state(true);
 	let loadedWishlists: Wishlist[] = $state([]);
 	let shareLink: string = $state('');
 
+	let creating: boolean = $state(false);
+	let deleting: boolean = $state(false);
+
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
+		const loadingId = toast.loading('Deleting...');
+		deleting = true;
 
 		return async ({ update, result }) => {
 			if (result.type === 'success') {
-				toast.success('Wishlist deleted');
+				toast.success('Wishlist deleted', { id: loadingId });
 			}
 			if (result.type === 'failure') {
-				toast.error('Failed to delete wishlist');
+				toast.error('Failed to delete wishlist', { id: loadingId });
 			}
 			if (result.type === 'error') {
-				toast.error('An error ocurred');
+				toast.error('An error ocurred'), { id: loadingId };
 			}
-			deleteWishlistModal.close();
 			await update({ reset: true, invalidateAll: true });
+			deleteWishlistModal.close();
+			deleting = false;
 		};
 	};
 
 	const submitCreateWishlist: SubmitFunction = () => {
-		isCreatingNewWishlist = true;
+		creating = true;
 		return async ({ update, result }) => {
 			await update();
-			isCreatingNewWishlist = false;
+			creating = false;
 			if (result.type === 'failure') {
 				toast.error('Could not create wishlist');
 			}
@@ -101,7 +107,7 @@
 		class="flex h-44 w-[312px] flex-col justify-center rounded-lg border-2 border-solid bg-blue-100 shadow-sm group-disabled:border-neutral-500 group-disabled:bg-neutral-300"
 	>
 		<div
-			class="gap- flex select-none items-center justify-center font-bold text-blue-700 group-disabled:text-neutral-500"
+			class="gap- flex select-none items-center justify-center font-bold text-blue-500 group-disabled:text-neutral-500"
 		>
 			<Plus size={20} />
 			<p class="select-none">Create New List</p>
@@ -137,9 +143,17 @@
 				>
 					<button
 						class="group w-fit disabled:cursor-not-allowed"
-						disabled={(data.isGuestUser && loadedWishlists.length === 1) || isCreatingNewWishlist}
+						disabled={(data.isGuestUser && loadedWishlists.length === 1) || creating}
 					>
-						{@render addMore()}
+						{#if creating}
+							<div
+								class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
+							>
+								<LoadingSpinner class="h-20 w-20 fill-neutral-500" />
+							</div>
+						{:else}
+							{@render addMore()}
+						{/if}
 					</button>
 				</form>
 			</li>
@@ -177,8 +191,10 @@
 				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
 					<button
 						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
-						>Delete</button
+						disabled={deleting}
 					>
+						Delete
+					</button>
 				</form>
 			</div>
 		</div>

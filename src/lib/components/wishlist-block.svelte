@@ -6,6 +6,7 @@
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { Lock, LockOpen, Share2, Trash2 } from 'lucide-svelte';
+	import LoadingSpinner from './loading-spinner.svelte';
 
 	interface Props {
 		wishlist: Wishlist;
@@ -16,8 +17,11 @@
 	}
 
 	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked, onLock }: Props = $props();
+	let locking: boolean = $state(false);
+	let sharing: boolean = $state(false);
 
 	const submitLockWishlist: SubmitFunction = ({ formData }) => {
+		locking = true;
 		formData.append('wishlistId', wishlist.id);
 		formData.append('isLocked', `${wishlist.isLocked}`);
 
@@ -34,11 +38,13 @@
 				}
 			}
 			await update({ invalidateAll: false });
+			locking = false;
 		};
 	};
 
 	const submitShareWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', wishlist.id);
+		sharing = true;
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
@@ -51,6 +57,7 @@
 					}
 				}
 			}
+			sharing = false;
 			await update();
 		};
 	};
@@ -73,8 +80,11 @@
 			<button
 				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
 				formaction="?/lockWishlist"
+				disabled={locking}
 			>
-				{#if wishlist.isLocked}
+				{#if locking}
+					<LoadingSpinner class="h-5 w-5 fill-blue-500" />
+				{:else if wishlist.isLocked}
 					<Lock size="20" />
 				{:else}
 					<LockOpen size="20" />
@@ -86,8 +96,13 @@
 			<button
 				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
 				formaction="?/shareWishlist"
+				disabled={sharing}
 			>
-				<Share2 size="20" />
+				{#if sharing}
+					<LoadingSpinner class="h-5 w-5 fill-blue-500" />
+				{:else}
+					<Share2 size="20" />
+				{/if}
 			</button>
 		</form>
 

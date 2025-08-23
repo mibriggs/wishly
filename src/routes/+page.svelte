@@ -24,6 +24,7 @@
 
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
+		loadedWishlists.filter(list => list.id === clickedWishlist).forEach(list => list.isDeleted = true);
 
 		return async ({ update, result }) => {
 			if (result.type === 'success') {

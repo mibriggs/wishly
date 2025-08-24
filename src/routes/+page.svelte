@@ -48,14 +48,16 @@
 
 	const submitCreateWishlist: SubmitFunction = () => {
 		creating = true;
+		const loadingId = toast.loading('Loading...');
+
 		return async ({ update, result }) => {
 			await update();
 			creating = false;
 			if (result.type === 'failure') {
-				toast.error('Could not create wishlist');
+				toast.error('Could not create wishlist', { id: loadingId });
 			}
 			if (result.type === 'success') {
-				toast.success('New wishlist created');
+				toast.success('New wishlist created', { id: loadingId });
 			}
 		};
 	};

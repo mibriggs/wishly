@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { FileX, Link } from 'lucide-svelte';
 	import type { PageProps } from './$types';
+	import Cloud from '$lib/components/cloud.svelte';
 
 	const { data }: PageProps = $props();
 </script>
@@ -40,9 +42,47 @@
 {/snippet}
 
 {#if data.empty}
-	<div>No items to see</div>
+	<main class="min-h-screen justify-center pt-32">
+		<div class="relative">
+			<div class="absolute -bottom-6 left-8 right-8 h-8 rounded-full bg-slate-300/40 blur-xl"></div>
+
+			<section
+				class="relative mx-auto w-[min(680px,92vw)] rounded-2xl bg-white p-12 shadow-sm ring-1 ring-black/5"
+			>
+				<div class="relative mx-auto mb-8 h-36 w-56">
+					<Cloud />
+					<FileX size="44" color="#ef4444" class="absolute inset-0 m-auto" />
+				</div>
+
+				<div class="text-center">
+					<h2 class="text-lg font-semibold text-slate-800">No results found</h2>
+					<p class="mt-1 text-slate-500">This list has no items.</p>
+				</div>
+			</section>
+		</div>
+	</main>
 {:else if data.expired}
-	<div>This link is expired, ask owner to share again</div>
+	<main class="min-h-screen justify-center pt-32">
+		<div class="relative">
+			<div class="absolute -bottom-6 left-8 right-8 h-8 rounded-full bg-slate-300/40 blur-xl"></div>
+
+			<section
+				class="relative mx-auto w-[min(680px,92vw)] rounded-2xl bg-white p-12 shadow-sm ring-1 ring-black/5"
+			>
+				<div class="relative mx-auto mb-8 h-36 w-56">
+					<Cloud />
+					<Link size="44" color="#ef4444" class="absolute inset-0 m-auto" />
+				</div>
+
+				<div class="text-center">
+					<h2 class="text-lg font-semibold text-slate-800">Link Expired</h2>
+					<p class="mt-1 text-slate-500">
+						This link is no longer valid. Please request a new one from the owner.
+					</p>
+				</div>
+			</section>
+		</div>
+	</main>
 {:else if data.items && data.wishlistName}
 	<main class="w-full p-4">
 		<div class="mb-4 flex items-center gap-4">

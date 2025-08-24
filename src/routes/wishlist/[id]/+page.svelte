@@ -15,15 +15,19 @@
 	import ErrorMessage from '$lib/components/error-message.svelte';
 
 	let { data }: PageProps = $props();
+	let creating: boolean = $state(false);
+	let deleting: boolean = $state(false);
 
 	const itemState = new WishlistItemStateClass();
 	const validationState = new ValidationStateClass();
 	const visibleItems = $derived(data.items.filter((item) => !item.isDeleted));
-	const disabled = $derived(validationState.disabled);
+	const disabled = $derived(validationState.disabled || creating);
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
+		creating = true;
 		formData.append('wishlistId', data.wishlist.id);
 		formData.append('itemQuantity', `${itemState.quantity}`);
+		const loadingId = toast.loading('Loading...');
 
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
@@ -31,25 +35,37 @@
 				if (errorDetails) {
 					validationState.updateErrors(errorDetails);
 				}
+				toast.error('Could not create item', { id: loadingId });
 				await update({ reset: false, invalidateAll: false });
 			} else {
 				itemState.closeModal('NEW');
 				itemState.reset();
 				validationState.reset();
+				toast.success('New item created', { id: loadingId });
 				await update();
 			}
+			creating = false;
 		};
 	};
 
 	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
+		deleting = true;
+		const loadingId = toast.loading('Deleting...');
+
 		if (itemState.itemToDelete) {
 			formData.append('itemId', itemState.itemToDelete.id);
 		}
 		formData.append('wishlistId', data.wishlist.id);
 
-		return async ({ update }) => {
+		return async ({ update, result }) => {
+			if (result.type === 'error' || result.type === 'failure') {
+				toast.error('An error ocurred', { id: loadingId });
+			} else {
+				toast.success('Item deleted', { id: loadingId });
+			}
 			itemState.closeModal('DELETE');
 			await update({ reset: true, invalidateAll: true });
+			deleting = false;
 		};
 	};
 
@@ -363,6 +379,7 @@
 				<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
 					<button
 						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
+						disabled={deleting}
 					>
 						Delete
 					</button>

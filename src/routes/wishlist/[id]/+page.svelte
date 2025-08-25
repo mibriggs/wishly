@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Check, Pencil, Plus, Trash2, TriangleAlert, X } from 'lucide-svelte';
+	import { Check, Plus, SquarePen, Trash2, TriangleAlert, X } from 'lucide-svelte';
 	import type { PageProps } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';
@@ -150,9 +150,13 @@
 			</p>
 		</span>
 		<span class="ml-auto flex items-center gap-4">
-			<button class="rounded-md p-3 hover:bg-amber-500/20"> <Pencil color="#F59E0B" /> </button>
 			<button
-				class="rounded-md p-3 hover:bg-red-500/20"
+				class="transform rounded-md p-3 transition duration-100 hover:bg-amber-500/20 active:scale-90"
+			>
+				<SquarePen color="#F59E0B" />
+			</button>
+			<button
+				class="transform rounded-md p-3 transition duration-100 hover:bg-red-500/20 active:scale-90"
 				onclick={() => handleItemDelete(wishlistItem)}
 			>
 				<Trash2 color="#EF4444" />
@@ -177,11 +181,13 @@
 		</span>
 
 		<span class="flex gap-2 self-end">
-			<button class="rounded-md p-2 hover:bg-amber-500/20">
-				<Pencil color="#F59E0B" size="20" />
+			<button
+				class="transform rounded-md p-2 transition duration-100 hover:bg-amber-500/20 active:scale-90"
+			>
+				<SquarePen color="#F59E0B" size="20" />
 			</button>
 			<button
-				class="rounded-md p-2 hover:bg-red-500/20"
+				class="transform rounded-md p-2 transition duration-100 hover:bg-red-500/20 active:scale-90"
 				onclick={() => handleItemDelete(wishlistItem)}
 			>
 				<Trash2 color="#EF4444" size="20" />
@@ -202,7 +208,9 @@
 			{data.wishlist.name}
 		</h1>
 		{#if !itemState.isNameEditable}
-			<button class="p-2" onclick={handleEditName}><Pencil size="20" /></button>
+			<button class="transform p-2 transition duration-100 active:scale-90" onclick={handleEditName}
+				><SquarePen /></button
+			>
 		{:else}
 			<button
 				class="rounded-md border bg-white p-2 text-red-500 shadow-sm"

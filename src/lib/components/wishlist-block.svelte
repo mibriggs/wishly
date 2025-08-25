@@ -5,7 +5,7 @@
 	import { wishlistSchema } from '$lib/schema';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Lock, LockOpen, Share2, Trash2 } from 'lucide-svelte';
+	import { Lock, LockOpen, Share, Trash2 } from 'lucide-svelte';
 	import LoadingSpinner from './loading-spinner.svelte';
 
 	interface Props {
@@ -101,7 +101,7 @@
 				{#if sharing}
 					<LoadingSpinner class="h-5 w-5 fill-blue-500" />
 				{:else}
-					<Share2 size="20" />
+					<Share size="20" />
 				{/if}
 			</button>
 		</form>

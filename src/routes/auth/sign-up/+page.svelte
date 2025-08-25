@@ -52,7 +52,7 @@
 			<ChevronRight size={16} />
 		</button>
 
-		<a class="flex w-fit gap-1 hover:underline" href="/auth/sign-in">
+		<a class="flex w-fit gap-1 hover:underline" href="/auth/sign-in" data-sveltekit-preload-data>
 			<p class="text-gray-500">Already have an account? <b class="text-black">Sign in</b></p>
 		</a>
 	</div>

@@ -73,6 +73,7 @@
 		<a
 			href={`/wishlist/${uuidToShortId(wishlist.id)}`}
 			class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+			data-sveltekit-preload-data
 		>
 			Expand
 		</a>

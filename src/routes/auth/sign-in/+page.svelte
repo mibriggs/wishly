@@ -37,7 +37,7 @@
 		<div class="flex flex-col gap-1">
 			<span class="flex items-center justify-between">
 				<label for="password" class="font-bold">Password</label>
-				<a href="/auth/reset" class="underline">Forgot password?</a>
+				<a href="/auth/reset" class="underline" data-sveltekit-preload-data>Forgot password?</a>
 			</span>
 			<input
 				type="password"
@@ -53,7 +53,7 @@
 			<ChevronRight size={16} />
 		</button>
 
-		<a href="/auth/sign-up" class="flex w-fit gap-1 hover:underline">
+		<a href="/auth/sign-up" class="flex w-fit gap-1 hover:underline" data-sveltekit-preload-data>
 			<p class="text-gray-500">Don't have an account? <b class="text-black">Sign up</b></p>
 		</a>
 	</div>

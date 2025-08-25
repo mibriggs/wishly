@@ -12,7 +12,7 @@ export class WishlistService {
 			.select()
 			.from(wishlistTable)
 			.where(and(eq(wishlistTable.userId, userId), not(wishlistTable.isDeleted)))
-			.orderBy(desc(wishlistTable.createdAt));
+			.orderBy(desc(wishlistTable.updatedAt));
 	}
 
 	static async findByWishlistAndUserId(

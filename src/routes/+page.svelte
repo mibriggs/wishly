@@ -8,6 +8,8 @@
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
+	import { scale } from 'svelte/transition';
+	import { poofOut } from '$lib/custom-transitions/poof-out';
 
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
@@ -125,7 +127,7 @@
 			<div>Loading...</div>
 		{:else}
 			{#each loadedWishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
-				<li>
+				<li in:scale out:poofOut>
 					<WishlistBlock
 						{loadedWishlists}
 						{wishlist}

@@ -7,7 +7,7 @@
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type WishlistItem } from '$lib/server/db/schema';
-	import { fade, slide } from 'svelte/transition';
+	import { scale, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
 	import { WishlistItemStateClass } from './item-state.svelte';
@@ -235,7 +235,7 @@
 	{:else}
 		<ul class="flex w-full flex-col gap-3.5">
 			{#each visibleItems as wishlistItem (wishlistItem.id)}
-				<li in:slide out:fade>
+				<li in:slide out:scale>
 					{@render itemComponent(wishlistItem)}
 				</li>
 			{/each}
@@ -286,6 +286,11 @@
 				<span class="flex flex-col items-start justify-center gap-1">
 					<input
 						type="text"
+						inputmode="url"
+						autocomplete="url"
+						autocapitalize="off"
+						autocorrect="off"
+						spellcheck="false"
 						name="itemUrl"
 						placeholder="Url..."
 						class={twJoin(

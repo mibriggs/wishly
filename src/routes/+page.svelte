@@ -11,6 +11,12 @@
 	import { scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 
+	type ShareData = {
+		title: string;
+		text: string;
+		url: string;
+	};
+
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
 
@@ -74,18 +80,58 @@
 		shareLink = link;
 	};
 
-	const copyToClipboard = () => {
-		copyText(shareLink);
-		toast.success('Link copied to clipboard!');
-		copyWishlistModal.close();
+	const shareOrCopyLink = async () => {
+		const shareData: ShareData = {
+			title: 'Wishlist',
+			text: 'Checkout my wishlist!',
+			url: shareLink
+		};
+
+		try {
+			if (!canUseWebShareApi(shareData)) {
+				throw new Error('Web Share unavailable for this payload/env');
+			}
+			await shareLinkToGuest(shareData);
+		} catch (err: any) {
+			if (err?.name === 'AbortError') {
+				toast.error('Share cancelled');
+				return;
+			}
+
+			const warningId = toast('Failed to share, copying link', { icon: '⚠️' });
+			const isCopied = await copyText(shareLink);
+			if (isCopied) {
+				toast.success('Link copied to clipboard!', { id: warningId });
+			} else {
+				toast.error('Failed to copy to clipboard, try again', { id: warningId });
+			}
+		} finally {
+			copyWishlistModal.close();
+		}
+	};
+
+	const canUseWebShareApi = (shareDate: ShareData) => {
+		return (
+			navigator &&
+			typeof navigator.share === 'function' &&
+			(typeof navigator.canShare !== 'function' || navigator.canShare(shareDate))
+		);
+	};
+
+	const shareLinkToGuest = async (shareData: ShareData) => {
+		await navigator.share(shareData);
+		console.log('Shared');
+		toast.success('Link shared!');
 	};
 
 	const copyText = async (text: string) => {
 		try {
 			await navigator.clipboard.writeText(text);
 			console.log('Copied:', text);
+			return true;
 		} catch (err) {
 			console.error('Failed to copy:', err);
+			return false;
 		}
 	};
 
@@ -231,7 +277,7 @@
 			</span>
 			<span class="flex flex-col items-center justify-center gap-1">
 				<p class="text-2xl font-bold">Are you sure?</p>
-				<p class="text-md text-center text-neutral-500">This link will be copied to clipboard</p>
+				<p class="text-md text-center text-neutral-500">This link will be shared</p>
 			</span>
 			<div class="flex items-center justify-center gap-2">
 				<button
@@ -240,9 +286,9 @@
 				>
 				<button
 					class="transform select-none rounded-md border-2 border-blue-500 bg-blue-100 px-4 py-2 text-blue-500 shadow-lg transition duration-100 active:scale-90"
-					onclick={copyToClipboard}
+					onclick={shareOrCopyLink}
 				>
-					Copy
+					Share
 				</button>
 			</div>
 		</div>

@@ -127,7 +127,15 @@
 			<div>Loading...</div>
 		{:else}
 			{#each loadedWishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
-				<li in:scale out:poofOut>
+				<li
+					in:scale
+					out:poofOut={{
+						duration: 600,
+						scaleTo: 0.5,
+						poofScale: 0.75,
+						poofColor: '#7890B4'
+					}}
+				>
 					<WishlistBlock
 						{loadedWishlists}
 						{wishlist}

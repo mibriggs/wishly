@@ -1,79 +1,114 @@
+// NOTE: To future me this was written entirely with claude ai and chatgpt I do not understand this
 import { cubicOut } from 'svelte/easing';
-import type { EasingFunction } from 'svelte/transition';
 
-// NOTE: To future me this was written entirely with claude ai I do not understand this
-interface PoofOutParams {
-	duration?: number;
-	delay?: number;
-}
+type Params = {
+	duration?: number; // total time for the whole outro
+	easing?: (t: number) => number;
+	rotate?: number; // degrees to rotate while leaving (default 180)
+	scaleTo?: number; // end scale (default 0)
+	poof?: boolean; // show radial poof overlay
+	poofScale?: number; // how big the poof expands (relative)
+	collapseDelay?: number; // % of duration before height collapse starts (0..1)
+	poofColor?: string; // center color for the poof effect
+};
 
-interface TransitionReturn {
-	delay: number;
-	duration: number;
-	easing: EasingFunction;
-	css?: (t: number, u: number) => string;
-	tick?: (t: number, u: number) => void;
-	onDestroy?: () => void;
-}
-
-// Poof out transition with JavaScript animation for more control
 export function poofOut(
 	node: HTMLElement,
-	{ duration = 600, delay = 0 }: PoofOutParams = {}
-): TransitionReturn {
-	let poofElement: HTMLDivElement | null = null;
-	let timeoutId: number | null = null;
+	{
+		duration = 500,
+		easing = cubicOut,
+		rotate = 180,
+		scaleTo = 0,
+		poof = true,
+		poofScale = 1.5,
+		collapseDelay = 0.82,
+		poofColor = 'rgba(255,255,255,0.85)' // ✅ default if none supplied
+	}: Params = {}
+) {
+	const style = getComputedStyle(node);
+	const h = node.offsetHeight;
+	const pt = parseFloat(style.paddingTop);
+	const pb = parseFloat(style.paddingBottom);
+	const mt = parseFloat(style.marginTop);
+	const mb = parseFloat(style.marginBottom);
+	const bt = parseFloat(style.borderTopWidth);
+	const bb = parseFloat(style.borderBottomWidth);
 
-	// Set transform origin to center (matching original CSS)
-	node.style.transformOrigin = 'center';
+	const originalTransformOrigin = style.transformOrigin;
+	node.style.transformOrigin = '50% 50%';
 
-	// Create the poof element immediately - this is key for the smoky effect!
-	poofElement = document.createElement('div');
-	poofElement.className = 'poof-effect';
-	poofElement.style.cssText = `
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 10;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0);
-  `;
-	node.appendChild(poofElement);
+	let poofEl: HTMLDivElement | null = null;
+	let poofAnim: Animation | null = null;
+
+	if (poof) {
+		const rect = node.getBoundingClientRect();
+
+		poofEl = document.createElement('div');
+		poofEl.style.position = 'fixed';
+		poofEl.style.left = `${rect.left + rect.width / 2}px`;
+		poofEl.style.top = `${rect.top + rect.height / 2}px`;
+		poofEl.style.width = `${Math.max(rect.width, rect.height) * 2}px`;
+		poofEl.style.height = `${Math.max(rect.width, rect.height) * 2}px`;
+		poofEl.style.pointerEvents = 'none';
+		poofEl.style.zIndex = '2147483647';
+		poofEl.style.transform = 'translate(-50%, -50%) scale(0)';
+		poofEl.style.background = `radial-gradient(circle, ${poofColor} 0%, transparent 70%)`; // ✅ customizable
+		poofEl.style.borderRadius = '50%';
+		document.body.appendChild(poofEl);
+
+		poofAnim = poofEl.animate(
+			[
+				{ transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+				{ transform: `translate(-50%, -50%) scale(${poofScale})`, opacity: 0 }
+			],
+			{ duration: Math.min(duration, 600), easing: 'ease-out', fill: 'forwards' }
+		);
+		poofAnim.addEventListener('finish', () => {
+			poofEl && poofEl.remove();
+			poofEl = null;
+		});
+	}
 
 	return {
-		delay,
 		duration,
-		easing: cubicOut,
-		tick: (t: number, u: number): void => {
-			const scale: number = t;
-			const rotation: number = u * 180;
+		easing,
+		css: (tRaw: number) => {
+			const t = 1 - tRaw;
+			const collapseStart = collapseDelay;
+			const collapseProgress = t <= collapseStart ? 0 : (t - collapseStart) / (1 - collapseStart);
 
-			// Apply main card transform
-			node.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
-			node.style.opacity = t.toString();
+			const scale = 1 + (scaleTo - 1) * t;
+			const rot = rotate * t;
+			const opacity = 1 - t;
 
-			// Update poof effect to match original CSS ::before behavior
-			if (poofElement) {
-				// This matches the original CSS: opacity peaks at middle, scale grows as u increases
-				const poofOpacity: number = u < 0.5 ? u * 2 : (1 - u) * 2; // Peak at 50%, fade out
-				const poofScale: number = u * 1.5; // Scale from 0 to 1.5 as animation progresses
+			const heightPx = h * (1 - collapseProgress);
+			const padTop = pt * (1 - collapseProgress);
+			const padBottom = pb * (1 - collapseProgress);
+			const marTop = mt * (1 - collapseProgress);
+			const marBottom = mb * (1 - collapseProgress);
+			const borderTop = bt * (1 - collapseProgress);
+			const borderBottom = bb * (1 - collapseProgress);
 
-				poofElement.style.opacity = poofOpacity.toString();
-				poofElement.style.transform = `translate(-50%, -50%) scale(${poofScale})`;
-			}
+			return `
+        transform: scale(${scale}) rotate(${rot}deg);
+        opacity: ${opacity};
+        height: ${heightPx}px;
+        padding-top: ${padTop}px;
+        padding-bottom: ${padBottom}px;
+        margin-top: ${marTop}px;
+        margin-bottom: ${marBottom}px;
+        border-top-width: ${borderTop}px;
+        border-bottom-width: ${borderBottom}px;
+        overflow: hidden;
+      `;
 		},
-
-		onDestroy: (): void => {
-			if (timeoutId !== null) {
-				clearTimeout(timeoutId);
-			}
-			if (poofElement && poofElement.parentNode) {
-				poofElement.remove();
+		// Cleanup
+		done: () => {
+			node.style.transformOrigin = originalTransformOrigin;
+			if (poofEl) {
+				poofAnim?.cancel();
+				poofEl.remove();
+				poofEl = null;
 			}
 		}
 	};

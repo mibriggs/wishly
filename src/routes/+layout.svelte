@@ -31,7 +31,6 @@
 
 {@render children()}
 
-
 <style>
 	:global(body) {
 		background-color: hsl(0, 0%, 96.1%);

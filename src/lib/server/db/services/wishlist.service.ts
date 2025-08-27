@@ -37,7 +37,10 @@ export class WishlistService {
 		const query = await db
 			.select()
 			.from(wishlistTable)
-			.leftJoin(wishlistItemTable, eq(wishlistItemTable.wishlistId, wishlistTable.id))
+			.leftJoin(
+				wishlistItemTable,
+				and(eq(wishlistItemTable.wishlistId, wishlistTable.id), not(wishlistItemTable.isDeleted))
+			)
 			.where(
 				and(
 					eq(wishlistTable.id, wishlistId),

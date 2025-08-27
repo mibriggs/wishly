@@ -1,4 +1,4 @@
-import { fail, redirect, type Actions } from '@sveltejs/kit';
+import { error, fail, isHttpError, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/services/wishlist.service';
@@ -13,33 +13,36 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	const maybeUuid = uuidSchema.safeParse(shortIdToUuid(params.id));
 	if (!maybeUuid.success) {
-		throw redirect(303, '/');
+		throw error(404, 'Invalid wishlist ID');
 	}
 
 	const wishlistId = maybeUuid.data;
-	let wishlist: { wishlists: Wishlist; wishlist_items: WishlistItem | null }[] = [];
-	try {
-		wishlist = await WishlistService.findWithItems(wishlistId, locals.user.id);
-	} catch (err) {
-		throw redirect(303, '/');
-	}
-
-	if (wishlist.length === 0) {
-		throw redirect(303, '/');
-	}
-
-	const loadedWishlist: Wishlist = wishlist[0].wishlists;
-	const items: WishlistItem[] = [];
-	wishlist.forEach((wishlistWithItem) => {
-		if (wishlistWithItem.wishlist_items !== null) {
-			items.push(wishlistWithItem.wishlist_items);
-		}
-	});
-
 	return {
-		wishlist: loadedWishlist,
-		items: items
+		streamed: loadWishlistItems(wishlistId, locals.user.id)
 	};
+};
+
+const loadWishlistItems = async (
+	wishlistId: string,
+	userId: string
+): Promise<{ wishlist: Wishlist; items: WishlistItem[] }> => {
+	try {
+		const wishlistWithItems = await WishlistService.findWithItems(wishlistId, userId);
+		if (wishlistWithItems.length === 0) {
+			throw error(404, 'Wishlist not found');
+		}
+
+		return {
+			wishlist: wishlistWithItems[0].wishlists,
+			items: wishlistWithItems
+				.map((wishlist) => wishlist.wishlist_items)
+				.filter((item): item is WishlistItem => item !== null)
+		};
+	} catch (err) {
+		if (isHttpError(err)) throw err;
+		console.error('Database error:', err);
+		throw error(500, 'Failed to load wishlist');
+	}
 };
 
 export const actions = {

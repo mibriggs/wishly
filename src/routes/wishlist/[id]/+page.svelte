@@ -6,7 +6,7 @@
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
-	import { type WishlistItem } from '$lib/server/db/schema';
+	import { type Wishlist, type WishlistItem } from '$lib/server/db/schema';
 	import { scale, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
@@ -15,17 +15,30 @@
 	import ErrorMessage from '$lib/components/error-message.svelte';
 
 	let { data }: PageProps = $props();
+	
 	let creating: boolean = $state(false);
 	let deleting: boolean = $state(false);
+	let isPageLoading: boolean | 'ERROR' = $state(true);
+	let wishlistData: { wishlist: Wishlist, items: WishlistItem[] } | undefined = $state();
 
 	const itemState = new WishlistItemStateClass();
 	const validationState = new ValidationStateClass();
-	const visibleItems = $derived(data.items.filter((item) => !item.isDeleted));
+	
 	const disabled = $derived(validationState.disabled || creating);
+	const visibleItems = $derived(wishlistData?.items.filter((item) => !item.isDeleted) ?? []);
+
+	$effect(() => {
+		data.streamed.then(streamedWishlist => {
+			isPageLoading = false;
+			wishlistData = streamedWishlist;
+		})
+		.catch(() => isPageLoading = 'ERROR')
+	})
+
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
 		creating = true;
-		formData.append('wishlistId', data.wishlist.id);
+		formData.append('wishlistId', wishlistData?.wishlist.id ?? '');
 		formData.append('itemQuantity', `${itemState.quantity}`);
 		const loadingId = toast.loading('Loading...');
 
@@ -55,7 +68,7 @@
 		if (itemState.itemToDelete) {
 			formData.append('itemId', itemState.itemToDelete.id);
 		}
-		formData.append('wishlistId', data.wishlist.id);
+		formData.append('wishlistId', wishlistData?.wishlist.id ?? '');
 
 		return async ({ update, result }) => {
 			if (result.type === 'error' || result.type === 'failure') {
@@ -71,13 +84,13 @@
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
 		formData.append('newName', itemState.newName);
-		formData.append('oldName', data.wishlist.name);
-		formData.append('wishlistId', data.wishlist.id);
+		formData.append('oldName', wishlistData?.wishlist.name ?? '');
+		formData.append('wishlistId', wishlistData?.wishlist.id ?? '');
 
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
 				if (itemState.wishlistNameElement) {
-					itemState.wishlistNameElement.innerText = data.wishlist.name;
+					itemState.wishlistNameElement.innerText = wishlistData?.wishlist.name ?? '';
 				}
 				const failureData = result.data;
 				if (failureData) {
@@ -129,7 +142,7 @@
 		itemState.isNameEditable = false;
 
 		if (itemState.wishlistNameElement) {
-			itemState.wishlistNameElement.innerText = data.wishlist.name;
+			itemState.wishlistNameElement.innerText = wishlistData?.wishlist.name ?? '';
 		}
 	};
 </script>
@@ -197,6 +210,11 @@
 {/snippet}
 
 <main class="w-full p-4">
+	{#if isPageLoading === true}
+		<div>Loading...</div>
+	{:else if isPageLoading === 'ERROR'}
+		<div>An error has occurred</div>
+	{:else}
 	<div class="mb-4 flex items-center gap-4">
 		<h1
 			bind:this={itemState.wishlistNameElement}
@@ -205,7 +223,7 @@
 			contenteditable={itemState.isNameEditable}
 			dir="ltr"
 		>
-			{data.wishlist.name}
+			{wishlistData?.wishlist.name}
 		</h1>
 		{#if !itemState.isNameEditable}
 			<button class="transform p-2 transition duration-100 active:scale-90" onclick={handleEditName}
@@ -400,6 +418,7 @@
 			</div>
 		</div>
 	</Modal>
+	{/if}
 </main>
 
 <style>

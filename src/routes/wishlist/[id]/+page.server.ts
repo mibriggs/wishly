@@ -71,7 +71,7 @@ export const actions = {
 			if (!newItem) {
 				return fail(400, { errorCause: 'Failed to create item', success: false });
 			}
-			return { success: true };
+			return { created: newItem };
 		} else {
 			return fail(400, maybeItem.error.flatten().fieldErrors);
 		}
@@ -90,7 +90,7 @@ export const actions = {
 			if (deletedItem.length === 0) {
 				return fail(400, { errorCause: 'Failed to delete item', success: false });
 			}
-			return { success: true };
+			return { deleted: deletedItem[0] };
 		} else {
 			console.error(maybeItem.error.flatten().fieldErrors);
 			return fail(400, maybeItem.error.flatten().fieldErrors);

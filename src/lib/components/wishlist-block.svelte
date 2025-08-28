@@ -58,7 +58,7 @@
 				}
 			}
 			sharing = false;
-			await update();
+			await update({ invalidateAll: false });
 		};
 	};
 </script>

@@ -117,7 +117,7 @@
 				}
 			}
 			itemState.isNameEditable = false;
-			await update({ reset: true, invalidateAll: true });
+			await update({ reset: true, invalidateAll: false });
 		};
 	};
 

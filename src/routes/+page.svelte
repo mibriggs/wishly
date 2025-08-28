@@ -51,7 +51,6 @@
 		return async ({ update, result }) => {
 			if (result.type === 'success' && result.data) {
 				const deleteSucceed = result.data.success;
-				console.log(deleteSucceed);
 				if (deleteSucceed === true) {
 					toast.success('Wishlist deleted', { id: loadingId });
 					await update({ invalidateAll: false });
@@ -60,6 +59,7 @@
 						.filter((list) => list.id === deletedWishlist.id)
 						.forEach((list) => (list.isDeleted = true));
 				} else {
+					toast.error('Failed to delete wishlist', { id: loadingId });
 					await update({ reset: true, invalidateAll: true });
 				}
 			} else if (result.type === 'failure') {

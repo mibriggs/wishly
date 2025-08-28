@@ -22,13 +22,13 @@
 	</div>
 
 	<ul class="flex w-full flex-col gap-3.5">
-		{#each Array.from({ length: 4 }) as _}
+		{#each Array.from({ length: 5 }) as _}
 			<li>
 				{@render skeletonItemComponent()}
 			</li>
 		{/each}
 		<span
-			class="mt-4 flex h-6 w-1/4 items-center justify-center gap-1 rounded-md bg-zinc-400 px-6 py-1 md:w-1/5 lg:w-1/12"
+			class="mt-4 flex h-6 w-1/3 items-center justify-center gap-1 rounded-md bg-zinc-400 px-6 py-1 md:w-1/5 lg:w-1/12"
 		>
 		</span>
 	</ul>

@@ -10,7 +10,6 @@
 
 	let NavigationSkeleton = $derived.by(() => {
 		if (navigating.to) {
-			console.log(navigating);
 			if (navigating.to.route.id === '/') {
 				return ListSkeleton;
 			} else if (navigating.to.route.id === '/wishlist/[id]') {

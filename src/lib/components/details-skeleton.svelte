@@ -1,5 +1,4 @@
 <script>
-	import { fade } from 'svelte/transition';
 	import ImageIcon from './image-icon.svelte';
 </script>
 

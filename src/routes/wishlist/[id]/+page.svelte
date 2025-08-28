@@ -7,12 +7,13 @@
 	import { twJoin } from 'tailwind-merge';
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type Wishlist, type WishlistItem } from '$lib/server/db/schema';
-	import { scale, slide } from 'svelte/transition';
+	import { fade, scale, slide } from 'svelte/transition';
 	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
 	import { WishlistItemStateClass } from './item-state.svelte';
 	import { ValidationStateClass } from './validation-state.svelte';
 	import ErrorMessage from '$lib/components/error-message.svelte';
+	import DetailsSkeleton from '$lib/components/details-skeleton.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -98,7 +99,7 @@
 	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
-		const renamingId = toast.loading("Renaming...");
+		const renamingId = toast.loading('Renaming...');
 		renaming = true;
 		if (wishlistData.wishlist) {
 			formData.append('newName', itemState.newName);
@@ -119,8 +120,7 @@
 						toast.error(errorCause, { id: renamingId });
 					}
 				}
-			}
-			else if (result.type === 'success') {
+			} else if (result.type === 'success') {
 				toast.success('Renamed!', { id: renamingId });
 			}
 			await update({ reset: true, invalidateAll: false });
@@ -232,10 +232,12 @@
 	</div>
 {/snippet}
 
-<main class="w-full p-4">
-	{#await wishlistData.streamWishlistItems()}
-		<div>Loading...</div>
-	{:then _}
+{#await wishlistData.streamWishlistItems()}
+	<div out:fade>
+		<DetailsSkeleton />
+	</div>
+{:then _}
+	<main class="w-full p-4" in:fade={{ delay: 400 }}>
 		<div class="mb-4 flex items-center gap-4">
 			<h1
 				bind:this={itemState.wishlistNameElement}
@@ -252,7 +254,7 @@
 					onclick={handleEditName}
 					disabled={renaming}
 				>
-						<SquarePen />
+					<SquarePen />
 				</button>
 			{:else}
 				<button
@@ -444,10 +446,10 @@
 				</div>
 			</div>
 		</Modal>
-	{:catch}
-		<div>An error has occurred</div>
-	{/await}
-</main>
+	</main>
+{:catch}
+	<div>An error has occurred</div>
+{/await}
 
 <style>
 	h1[contenteditable='true'] {

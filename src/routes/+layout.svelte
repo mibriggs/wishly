@@ -2,8 +2,23 @@
 	import { Toaster } from 'svelte-french-toast';
 	import '../app.css';
 	import type { LayoutProps } from './$types';
+	import { navigating } from '$app/state';
+	import ListSkeleton from '$lib/components/list-skeleton.svelte';
+	import DetailsSkeleton from '$lib/components/details-skeleton.svelte';
 
 	let { data, children }: LayoutProps = $props();
+
+	let NavigationSkeleton = $derived.by(() => {
+		if (navigating.to) {
+			console.log(navigating);
+			if (navigating.to.route.id === '/') {
+				return ListSkeleton;
+			} else if (navigating.to.route.id === '/wishlist/[id]') {
+				return DetailsSkeleton;
+			}
+		}
+		return null;
+	});
 </script>
 
 <Toaster />
@@ -29,7 +44,11 @@
 	{/if}
 </div>
 
-{@render children()}
+{#if NavigationSkeleton}
+	<NavigationSkeleton />
+{:else}
+	{@render children()}
+{/if}
 
 <style>
 	:global(body) {

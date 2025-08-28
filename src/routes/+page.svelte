@@ -10,6 +10,7 @@
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
 	import { scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
+	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 
 	type ShareData = {
 		title: string;
@@ -186,7 +187,7 @@
 		class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
 	>
 		{#await wishlistsData.streamWishlists()}
-			<div>Loading...</div>
+			<ListSkeleton />
 		{:then _}
 			{#each wishlistsData.nonDeletedWishlists as wishlist (wishlist.id)}
 				<li

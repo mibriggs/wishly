@@ -233,9 +233,7 @@
 {/snippet}
 
 {#await wishlistData.streamWishlistItems()}
-	<div out:fade>
-		<DetailsSkeleton />
-	</div>
+	<DetailsSkeleton />
 {:then _}
 	<main class="w-full p-4" in:fade={{ delay: 400 }}>
 		<div class="mb-4 flex items-center gap-4">

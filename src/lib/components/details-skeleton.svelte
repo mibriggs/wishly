@@ -48,7 +48,7 @@
 
 	<!-- phone screens -->
 	<div
-		class="flex h-20 w-full items-start justify-between gap-4 rounded-md border bg-zinc-400 p-3 opacity-70 sm:hidden"
+		class="flex h-24 w-full items-start justify-between gap-4 rounded-md border bg-zinc-400 p-3 opacity-70 sm:hidden"
 	>
 		<ImageIcon class="h-5 w-5" />
 

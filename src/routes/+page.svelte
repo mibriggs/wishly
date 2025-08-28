@@ -19,7 +19,9 @@
 
 	class StreamedWishlist {
 		wishlists: Wishlist[] = $state([]);
-
+		nonDeletedWishlists: Wishlist[] = $derived(
+			this.wishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted)
+		);
 		async streamWishlists() {
 			this.wishlists = await data.wishlists;
 		}
@@ -47,16 +49,26 @@
 		deleting = true;
 
 		return async ({ update, result }) => {
-			if (result.type === 'success') {
-				toast.success('Wishlist deleted', { id: loadingId });
-			}
-			if (result.type === 'failure') {
+			if (result.type === 'success' && result.data) {
+				const deleteSucceed = result.data.success;
+				console.log(deleteSucceed);
+				if (deleteSucceed === true) {
+					toast.success('Wishlist deleted', { id: loadingId });
+					await update({ invalidateAll: false });
+					const deletedWishlist = result.data.wishlist as Wishlist;
+					wishlistsData.nonDeletedWishlists
+						.filter((list) => list.id === deletedWishlist.id)
+						.forEach((list) => (list.isDeleted = true));
+				} else {
+					await update({ reset: true, invalidateAll: true });
+				}
+			} else if (result.type === 'failure') {
 				toast.error('Failed to delete wishlist', { id: loadingId });
-			}
-			if (result.type === 'error') {
+				await update({ reset: true, invalidateAll: true });
+			} else if (result.type === 'error') {
 				toast.error('An error ocurred'), { id: loadingId };
+				await update({ reset: true, invalidateAll: true });
 			}
-			await update({ reset: true, invalidateAll: true });
 			deleteWishlistModal.close();
 			deleting = false;
 		};
@@ -67,13 +79,16 @@
 		const loadingId = toast.loading('Loading...');
 
 		return async ({ update, result }) => {
-			await update();
 			creating = false;
 			if (result.type === 'failure') {
 				toast.error('Could not create wishlist', { id: loadingId });
+				await update();
 			}
-			if (result.type === 'success') {
+			if (result.type === 'success' && result.data) {
+				const newWishlist = result.data.wishlist as Wishlist;
+				wishlistsData.wishlists.unshift(newWishlist);
 				toast.success('New wishlist created', { id: loadingId });
+				await update({ invalidateAll: false });
 			}
 		};
 	};
@@ -173,7 +188,7 @@
 		{#await wishlistsData.streamWishlists()}
 			<div>Loading...</div>
 		{:then _}
-			{#each wishlistsData.wishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
+			{#each wishlistsData.nonDeletedWishlists as wishlist (wishlist.id)}
 				<li
 					in:scale
 					out:poofOut={{

@@ -105,7 +105,7 @@ export const actions = {
 
 		if (newName !== null && oldName !== null && wishlistId !== null) {
 			if (newName.toString().trim().length == 0 || newName.toString() === oldName.toString()) {
-				return fail(400, { errorCause: 'Name cannot be empty or match old name', success: false });
+				return fail(400, { errorCause: 'Must be new non-empty name', success: false });
 			}
 
 			const updatedWishlist = await WishlistService.updateWishlistName(

@@ -16,15 +16,10 @@
 
 	let { data }: PageProps = $props();
 
-	class StreamedWishlistState {
+	class StreamedWishlistItems {
 		wishlist: Wishlist | undefined = $state();
-		items: WishlistItem[] | undefined = $state();
-		visibleItems = $derived.by(() => {
-			if (this.items) {
-				return this.items.filter((item) => !item.isDeleted);
-			}
-			return [];
-		});
+		items: WishlistItem[] = $state([]);
+		visibleItems = $derived(this.items.filter((item) => !item.isDeleted));
 
 		async streamWishlistItems() {
 			const { wishlist: streamedWishlist, items: streamedItems } = await data.streamed;
@@ -33,7 +28,7 @@
 		}
 	}
 
-	const wishlistData = new StreamedWishlistState();
+	const wishlistData = new StreamedWishlistItems();
 	const itemState = new WishlistItemStateClass();
 	const validationState = new ValidationStateClass();
 
@@ -66,11 +61,7 @@
 				validationState.reset();
 				toast.success('New item created', { id: loadingId });
 
-				if (wishlistData.items) {
-					wishlistData.items.push(newWishlistItem.created);
-				} else {
-					wishlistData.items = [newWishlistItem.created];
-				}
+				wishlistData.items.push(newWishlistItem.created);
 				await update({ invalidateAll: false });
 			}
 			creating = false;
@@ -95,7 +86,7 @@
 			} else if (result.type === 'success') {
 				const deletedItem = result.data as { deleted: WishlistItem };
 				wishlistData.items
-					?.filter((item) => item.id === deletedItem.deleted.id)
+					.filter((item) => item.id === deletedItem.deleted.id)
 					.forEach((item) => (item.isDeleted = true));
 				toast.success('Item deleted', { id: loadingId });
 			}
@@ -106,8 +97,8 @@
 	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
-		formData.append('newName', itemState.newName);
 		if (wishlistData.wishlist) {
+			formData.append('newName', itemState.newName);
 			formData.append('oldName', wishlistData.wishlist.name);
 			formData.append('wishlistId', wishlistData.wishlist.id);
 		}
@@ -236,7 +227,6 @@
 
 <main class="w-full p-4">
 	{#await wishlistData.streamWishlistItems()}
-		{console.log('loading...')}
 		<div>Loading...</div>
 	{:then _}
 		<div class="mb-4 flex items-center gap-4">

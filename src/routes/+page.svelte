@@ -17,6 +17,16 @@
 		url: string;
 	};
 
+	class StreamedWishlist {
+		wishlists: Wishlist[] = $state([]);
+
+		async streamWishlists() {
+			this.wishlists = await data.wishlists;
+		}
+	}
+
+	const wishlistsData = new StreamedWishlist();
+
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
 
@@ -26,8 +36,6 @@
 	let isCopyModalOpen: boolean = $state(false);
 
 	let clickedWishlist: string = $state('');
-	let isWishlistsLoading: boolean = $state(true);
-	let loadedWishlists: Wishlist[] = $state([]);
 	let shareLink: string = $state('');
 
 	let creating: boolean = $state(false);
@@ -136,20 +144,13 @@
 	};
 
 	const updateWishlistLock = (id: string, isLocked: boolean, updatedAt: Date) => {
-		loadedWishlists.forEach((wishlist) => {
+		wishlistsData.wishlists.forEach((wishlist) => {
 			if (wishlist.id === id) {
 				wishlist.isLocked = isLocked;
 				wishlist.updatedAt = updatedAt;
 			}
 		});
 	};
-
-	$effect(() => {
-		data.wishlists.then((wishlists) => {
-			loadedWishlists = wishlists;
-			isWishlistsLoading = false;
-		});
-	});
 </script>
 
 {#snippet addMore()}
@@ -169,10 +170,10 @@
 	<ul
 		class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
 	>
-		{#if isWishlistsLoading}
+		{#await wishlistsData.streamWishlists()}
 			<div>Loading...</div>
-		{:else}
-			{#each loadedWishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
+		{:then _}
+			{#each wishlistsData.wishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted) as wishlist (wishlist.id)}
 				<li
 					in:scale
 					out:poofOut={{
@@ -183,8 +184,8 @@
 					}}
 				>
 					<WishlistBlock
-						{loadedWishlists}
 						{wishlist}
+						loadedWishlists={wishlistsData.wishlists}
 						onLock={updateWishlistLock}
 						onShareClicked={openCopyModal}
 						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
@@ -201,7 +202,7 @@
 				>
 					<button
 						class="group w-fit disabled:cursor-not-allowed"
-						disabled={(data.isGuestUser && loadedWishlists.length === 1) || creating}
+						disabled={(data.isGuestUser && wishlistsData.wishlists.length === 1) || creating}
 					>
 						{#if creating}
 							<div
@@ -215,7 +216,9 @@
 					</button>
 				</form>
 			</li>
-		{/if}
+		{:catch}
+			<div>An error has occurred</div>
+		{/await}
 	</ul>
 
 	<Modal

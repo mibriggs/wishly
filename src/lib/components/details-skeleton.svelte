@@ -3,7 +3,7 @@
 	import ImageIcon from './image-icon.svelte';
 </script>
 
-<div role="status" class="animate-pulse px-4 pt-8" out:fade>
+<div role="status" class="animate-pulse px-4 pt-8">
 	<div class="mb-4 flex items-center gap-4">
 		<span class="h-6 w-2/12 rounded-md bg-zinc-400 opacity-70"></span>
 		<ImageIcon class="h-6 w-6" />

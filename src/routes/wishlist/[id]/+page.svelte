@@ -103,6 +103,7 @@
 			formData.append('wishlistId', wishlistData.wishlist.id);
 		}
 
+		itemState.isNameEditable = false;
 		return async ({ update, result }) => {
 			if (result.type === 'failure') {
 				if (itemState.wishlistNameElement && wishlistData.wishlist) {
@@ -116,7 +117,6 @@
 					}
 				}
 			}
-			itemState.isNameEditable = false;
 			await update({ reset: true, invalidateAll: false });
 		};
 	};

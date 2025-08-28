@@ -34,6 +34,7 @@
 
 	let creating: boolean = $state(false);
 	let deleting: boolean = $state(false);
+	let renaming: boolean = $state(false);
 
 	const disabled = $derived(validationState.disabled || creating);
 
@@ -97,6 +98,8 @@
 	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
+		const renamingId = toast.loading("Renaming...");
+		renaming = true;
 		if (wishlistData.wishlist) {
 			formData.append('newName', itemState.newName);
 			formData.append('oldName', wishlistData.wishlist.name);
@@ -113,11 +116,15 @@
 				if (failureData) {
 					const errorCause: string | undefined = failureData['errorCause'];
 					if (errorCause) {
-						toast.error(errorCause);
+						toast.error(errorCause, { id: renamingId });
 					}
 				}
 			}
+			else if (result.type === 'success') {
+				toast.success('Renamed!', { id: renamingId });
+			}
 			await update({ reset: true, invalidateAll: false });
+			renaming = false;
 		};
 	};
 
@@ -242,8 +249,11 @@
 			{#if !itemState.isNameEditable}
 				<button
 					class="transform p-2 transition duration-150 active:scale-90"
-					onclick={handleEditName}><SquarePen /></button
+					onclick={handleEditName}
+					disabled={renaming}
 				>
+						<SquarePen />
+				</button>
 			{:else}
 				<button
 					class="transform rounded-md border bg-white p-2 text-red-500 shadow-sm transition duration-150 active:scale-90"

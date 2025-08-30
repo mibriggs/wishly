@@ -8,7 +8,7 @@
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
-	import { scale } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 
@@ -167,6 +167,8 @@
 			}
 		});
 	};
+
+	let transitionOver: boolean = $state(false);
 </script>
 
 {#snippet addMore()}
@@ -182,134 +184,139 @@
 	</div>
 {/snippet}
 
-<main>
-	<ul
-		class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
-	>
-		{#await wishlistsData.streamWishlists()}
-			<ListSkeleton />
-		{:then _}
-			{#each wishlistsData.nonDeletedWishlists as wishlist (wishlist.id)}
-				<li
-					in:scale
-					out:poofOut={{
-						duration: 600,
-						scaleTo: 0.5,
-						poofScale: 0.75,
-						poofColor: '#7890B4'
-					}}
-				>
-					<WishlistBlock
-						{wishlist}
-						loadedWishlists={wishlistsData.wishlists}
-						onLock={updateWishlistLock}
-						onShareClicked={openCopyModal}
-						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
-					/>
+{#await wishlistsData.streamWishlists()}
+	<div out:fade onoutroend={() => (transitionOver = true)}>
+		<ListSkeleton />
+	</div>
+{:then _}
+	{#if transitionOver}
+		<main in:fade>
+			<ul
+				class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
+			>
+				{#each wishlistsData.nonDeletedWishlists as wishlist (wishlist.id)}
+					<li
+						in:scale
+						out:poofOut={{
+							duration: 600,
+							scaleTo: 0.5,
+							poofScale: 0.75,
+							poofColor: '#7890B4'
+						}}
+					>
+						<WishlistBlock
+							{wishlist}
+							loadedWishlists={wishlistsData.wishlists}
+							onLock={updateWishlistLock}
+							onShareClicked={openCopyModal}
+							onDeleteClicked={() => updateModalVisibility(wishlist.id)}
+						/>
+					</li>
+				{/each}
+
+				<li>
+					<form
+						method="POST"
+						action="?/createWishlist"
+						class="w-fit"
+						use:enhance={submitCreateWishlist}
+					>
+						<button
+							class="group w-fit disabled:cursor-not-allowed"
+							disabled={(data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1) ||
+								creating}
+						>
+							{#if creating}
+								<div
+									class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
+								>
+									<LoadingSpinner class="h-20 w-20 fill-neutral-500" />
+								</div>
+							{:else}
+								{@render addMore()}
+							{/if}
+						</button>
+					</form>
 				</li>
-			{/each}
+			</ul>
+		</main>
+	{/if}
+{:catch}
+	<div>An error has occurred</div>
+{/await}
 
-			<li>
-				<form
-					method="POST"
-					action="?/createWishlist"
-					class="w-fit"
-					use:enhance={submitCreateWishlist}
-				>
-					<button
-						class="group w-fit disabled:cursor-not-allowed"
-						disabled={(data.isGuestUser && wishlistsData.wishlists.length === 1) || creating}
-					>
-						{#if creating}
-							<div
-								class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
-							>
-								<LoadingSpinner class="h-20 w-20 fill-neutral-500" />
-							</div>
-						{:else}
-							{@render addMore()}
-						{/if}
-					</button>
-				</form>
-			</li>
-		{:catch}
-			<div>An error has occurred</div>
-		{/await}
-	</ul>
-
-	<Modal
-		id="delete-wishlist-modal"
-		isOpen={isDeleteModalOpen}
-		onModalClose={() => (isDeleteModalOpen = !isDeleteModalOpen)}
-		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-		bind:this={deleteWishlistModal}
-	>
-		<div class="flex flex-col items-center gap-3">
+<Modal
+	id="delete-wishlist-modal"
+	isOpen={isDeleteModalOpen}
+	onModalClose={() => (isDeleteModalOpen = !isDeleteModalOpen)}
+	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+	bind:this={deleteWishlistModal}
+>
+	<div class="flex flex-col items-center gap-3">
+		<button
+			class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
+			onclick={() => deleteWishlistModal.close()}
+		>
+			&times;
+		</button>
+		<span class="rounded-md bg-red-100 p-3 text-red-500">
+			<TriangleAlert />
+		</span>
+		<span class="flex flex-col items-center justify-center gap-1">
+			<p class="text-2xl font-bold">Are you sure?</p>
+			<p class="text-md text-center text-neutral-500">
+				Are you sure you want to delete this wishlist? This action cannot be undone.
+			</p>
+		</span>
+		<div class="flex items-center justify-center gap-2">
 			<button
-				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
-				onclick={() => deleteWishlistModal.close()}
+				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
+				onclick={() => deleteWishlistModal.close()}>Cancel</button
 			>
-				&times;
-			</button>
-			<span class="rounded-md bg-red-100 p-3 text-red-500">
-				<TriangleAlert />
-			</span>
-			<span class="flex flex-col items-center justify-center gap-1">
-				<p class="text-2xl font-bold">Are you sure?</p>
-				<p class="text-md text-center text-neutral-500">
-					Are you sure you want to delete this wishlist? This action cannot be undone.
-				</p>
-			</span>
-			<div class="flex items-center justify-center gap-2">
+			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
 				<button
-					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-					onclick={() => deleteWishlistModal.close()}>Cancel</button
+					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
+					disabled={deleting}
 				>
-				<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
-					<button
-						class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
-						disabled={deleting}
-					>
-						Delete
-					</button>
-				</form>
-			</div>
-		</div>
-	</Modal>
-
-	<Modal
-		id="copy-wishlist-modal"
-		isOpen={isCopyModalOpen}
-		onModalClose={() => (isCopyModalOpen = !isCopyModalOpen)}
-		class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-		bind:this={copyWishlistModal}
-	>
-		<div class="flex flex-col items-center gap-3">
-			<button
-				class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
-				onclick={() => copyWishlistModal.close()}
-			>
-				&times;
-			</button>
-			<span class="rounded-md bg-blue-100 p-3 text-blue-500">
-				<ClipboardCheck />
-			</span>
-			<span class="flex flex-col items-center justify-center gap-1">
-				<p class="text-2xl font-bold">Are you sure?</p>
-				<p class="text-md text-center text-neutral-500">This link will be shared</p>
-			</span>
-			<div class="flex items-center justify-center gap-2">
-				<button
-					class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-					onclick={() => copyWishlistModal.close()}>Cancel</button
-				>
-				<button
-					class="transform select-none rounded-md border-2 border-blue-500 bg-blue-100 px-4 py-2 text-blue-500 shadow-lg transition duration-100 active:scale-90"
-					onclick={shareOrCopyLink}
-				>
-					Share
+					Delete
 				</button>
-			</div>
+			</form>
 		</div>
-	</Modal>
-</main>
+	</div>
+</Modal>
+
+<Modal
+	id="copy-wishlist-modal"
+	isOpen={isCopyModalOpen}
+	onModalClose={() => (isCopyModalOpen = !isCopyModalOpen)}
+	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+	bind:this={copyWishlistModal}
+>
+	<div class="flex flex-col items-center gap-3">
+		<button
+			class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-100 focus:outline-none active:scale-90"
+			onclick={() => copyWishlistModal.close()}
+		>
+			&times;
+		</button>
+		<span class="rounded-md bg-blue-100 p-3 text-blue-500">
+			<ClipboardCheck />
+		</span>
+		<span class="flex flex-col items-center justify-center gap-1">
+			<p class="text-2xl font-bold">Are you sure?</p>
+			<p class="text-md text-center text-neutral-500">This link will be shared</p>
+		</span>
+		<div class="flex items-center justify-center gap-2">
+			<button
+				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
+				onclick={() => copyWishlistModal.close()}>Cancel</button
+			>
+			<button
+				class="transform select-none rounded-md border-2 border-blue-500 bg-blue-100 px-4 py-2 text-blue-500 shadow-lg transition duration-100 active:scale-90"
+				onclick={shareOrCopyLink}
+			>
+				Share
+			</button>
+		</div>
+	</div>
+</Modal>

@@ -32,7 +32,7 @@
 	const wishlistData = new StreamedWishlistItems();
 	const itemState = new WishlistItemStateClass();
 	const validationState = new ValidationStateClass();
-	
+
 	let transitionOver = $state(false);
 	let creating: boolean = $state(false);
 	let deleting: boolean = $state(false);
@@ -169,7 +169,6 @@
 			itemState.wishlistNameElement.innerText = wishlistData.wishlist.name;
 		}
 	};
-
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
@@ -235,10 +234,7 @@
 {/snippet}
 
 {#await wishlistData.streamWishlistItems()}
-	<div
-		out:fade
-		onoutroend={() => transitionOver = true}
-	>
+	<div out:fade onoutroend={() => (transitionOver = true)}>
 		<DetailsSkeleton />
 	</div>
 {:then _}
@@ -310,157 +306,153 @@
 				<Plus size={16} />
 				<p>Add an item</p>
 			</button>
-
-			<Modal
-				id="new-item-modal"
-				bind:this={itemState.newItemModal}
-				isOpen={itemState.isNewItemModalOpen}
-				onModalClose={() => itemState.updateModalState(!itemState.isNewItemModalOpen, 'NEW')}
-				class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-			>
-				<div class="flex w-full flex-col gap-1">
-					<button
-						class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-150 focus:outline-none active:scale-90"
-						type="button"
-						aria-label="close new item modal"
-						onclick={() => itemState.closeModal('NEW')}
-					>
-						&times;
-					</button>
-					<form class="flex flex-col gap-2" method="POST" use:enhance={submitNewItem}>
-						<span class="flex flex-col items-start justify-center gap-1">
-							<input
-								type="text"
-								name="itemName"
-								placeholder="Product name..."
-								class={twJoin(
-									'w-3/4 rounded-md border p-1 focus:outline-none',
-									validationState.nameError && 'border-red-500'
-								)}
-								onchange={() => validationState.validateName(itemState.name)}
-								bind:value={itemState.name}
-							/>
-							<ErrorMessage message={validationState.nameError} />
-						</span>
-
-						<span class="flex flex-col items-start justify-center gap-1">
-							<input
-								type="text"
-								inputmode="url"
-								autocomplete="url"
-								autocapitalize="off"
-								autocorrect="off"
-								spellcheck="false"
-								name="itemUrl"
-								placeholder="Url..."
-								class={twJoin(
-									'w-3/4 rounded-md border p-1 focus:outline-none',
-									validationState.urlError && 'border-red-500'
-								)}
-								onchange={() => validationState.validateUrl(itemState.url)}
-								bind:value={itemState.url}
-							/>
-							<ErrorMessage message={validationState.urlError} />
-						</span>
-
-						<span class="flex flex-col items-start justify-center gap-1">
-							<NumberStepper bind:value={itemState.quantity} />
-							<ErrorMessage message={validationState.quantityError} />
-						</span>
-
-						<span class="flex flex-col items-start justify-center gap-1">
-							<span
-								class={twJoin(
-									'flex items-center gap-1 rounded-md text-2xl',
-									validationState.costError ? 'ring-1 ring-red-500' : 'ring-0'
-								)}
-							>
-								<label for="itemCost" class="select-none">$</label>
-								<input
-									type="text"
-									inputmode="decimal"
-									placeholder="00.00"
-									class="focus:outline-none"
-									id="itemCost"
-									name="itemCost"
-									onchange={() => validationState.validateCost(itemState.cost)}
-									bind:value={itemState.cost}
-								/>
-							</span>
-							<ErrorMessage message={validationState.costError} />
-						</span>
-						<span class="mt-1 flex gap-2 self-center">
-							<button
-								type="button"
-								aria-label="close new item modal"
-								class="transform cursor-pointer select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-150 active:scale-90"
-								onclick={() => itemState.closeModal('NEW')}
-							>
-								Cancel
-							</button>
-							<button
-								formaction="?/createWishlistItem"
-								aria-label="create new item"
-								class="transform select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 shadow-lg transition duration-150 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
-								{disabled}
-							>
-								Add to Wishlist
-							</button>
-						</span>
-					</form>
-				</div>
-			</Modal>
-
-			<Modal
-				id="delete-item-modal"
-				bind:this={itemState.deleteItemModal}
-				isOpen={itemState.isDeleteItemModalOpen}
-				onModalClose={() => itemState.updateModalState(!itemState.deleteItemModal, 'DELETE')}
-				class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
-			>
-				<div class="flex flex-col items-center gap-3">
-					<button
-						class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-150 focus:outline-none active:scale-90"
-						onclick={() => itemState.closeModal('DELETE')}
-					>
-						&times;
-					</button>
-					<span class="rounded-md bg-red-100 p-3 text-red-500">
-						<TriangleAlert />
-					</span>
-					<span class="flex flex-col items-center justify-center gap-1">
-						<p class="text-2xl font-bold">Are you sure?</p>
-						<p class="text-md text-center text-neutral-500">
-							Are you sure you want to delete <span class="font-bold"
-								>{itemState.itemToDelete?.itemName}</span
-							>? This action cannot be undone.
-						</p>
-					</span>
-					<div class="flex items-center justify-center gap-2">
-						<button
-							class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-150 active:scale-90"
-							onclick={() => itemState.closeModal('DELETE')}>Cancel</button
-						>
-						<form
-							method="POST"
-							action="?/deleteWishlistItem"
-							use:enhance={submitDeleteWishlistItem}
-						>
-							<button
-								class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-150 active:scale-90"
-								disabled={deleting}
-							>
-								Delete
-							</button>
-						</form>
-					</div>
-				</div>
-			</Modal>
 		</main>
 	{/if}
 {:catch}
 	<div>An error has occurred</div>
 {/await}
+
+<Modal
+	id="new-item-modal"
+	bind:this={itemState.newItemModal}
+	isOpen={itemState.isNewItemModalOpen}
+	onModalClose={() => itemState.updateModalState(!itemState.isNewItemModalOpen, 'NEW')}
+	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+>
+	<div class="flex w-full flex-col gap-1">
+		<button
+			class="flex size-9 transform items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-150 focus:outline-none active:scale-90"
+			type="button"
+			aria-label="close new item modal"
+			onclick={() => itemState.closeModal('NEW')}
+		>
+			&times;
+		</button>
+		<form class="flex flex-col gap-2" method="POST" use:enhance={submitNewItem}>
+			<span class="flex flex-col items-start justify-center gap-1">
+				<input
+					type="text"
+					name="itemName"
+					placeholder="Product name..."
+					class={twJoin(
+						'w-3/4 rounded-md border p-1 focus:outline-none',
+						validationState.nameError && 'border-red-500'
+					)}
+					onchange={() => validationState.validateName(itemState.name)}
+					bind:value={itemState.name}
+				/>
+				<ErrorMessage message={validationState.nameError} />
+			</span>
+
+			<span class="flex flex-col items-start justify-center gap-1">
+				<input
+					type="text"
+					inputmode="url"
+					autocomplete="url"
+					autocapitalize="off"
+					autocorrect="off"
+					spellcheck="false"
+					name="itemUrl"
+					placeholder="Url..."
+					class={twJoin(
+						'w-3/4 rounded-md border p-1 focus:outline-none',
+						validationState.urlError && 'border-red-500'
+					)}
+					onchange={() => validationState.validateUrl(itemState.url)}
+					bind:value={itemState.url}
+				/>
+				<ErrorMessage message={validationState.urlError} />
+			</span>
+
+			<span class="flex flex-col items-start justify-center gap-1">
+				<NumberStepper bind:value={itemState.quantity} />
+				<ErrorMessage message={validationState.quantityError} />
+			</span>
+
+			<span class="flex flex-col items-start justify-center gap-1">
+				<span
+					class={twJoin(
+						'flex items-center gap-1 rounded-md text-2xl',
+						validationState.costError ? 'ring-1 ring-red-500' : 'ring-0'
+					)}
+				>
+					<label for="itemCost" class="select-none">$</label>
+					<input
+						type="text"
+						inputmode="decimal"
+						placeholder="00.00"
+						class="focus:outline-none"
+						id="itemCost"
+						name="itemCost"
+						onchange={() => validationState.validateCost(itemState.cost)}
+						bind:value={itemState.cost}
+					/>
+				</span>
+				<ErrorMessage message={validationState.costError} />
+			</span>
+			<span class="mt-1 flex gap-2 self-center">
+				<button
+					type="button"
+					aria-label="close new item modal"
+					class="transform cursor-pointer select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-150 active:scale-90"
+					onclick={() => itemState.closeModal('NEW')}
+				>
+					Cancel
+				</button>
+				<button
+					formaction="?/createWishlistItem"
+					aria-label="create new item"
+					class="transform select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 shadow-lg transition duration-150 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
+					{disabled}
+				>
+					Add to Wishlist
+				</button>
+			</span>
+		</form>
+	</div>
+</Modal>
+
+<Modal
+	id="delete-item-modal"
+	bind:this={itemState.deleteItemModal}
+	isOpen={itemState.isDeleteItemModalOpen}
+	onModalClose={() => itemState.updateModalState(!itemState.deleteItemModal, 'DELETE')}
+	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
+>
+	<div class="flex flex-col items-center gap-3">
+		<button
+			class="flex size-9 transform select-none items-center justify-center self-end rounded-full bg-stone-200 text-gray-400 shadow-md ring-2 ring-gray-400 transition duration-150 focus:outline-none active:scale-90"
+			onclick={() => itemState.closeModal('DELETE')}
+		>
+			&times;
+		</button>
+		<span class="rounded-md bg-red-100 p-3 text-red-500">
+			<TriangleAlert />
+		</span>
+		<span class="flex flex-col items-center justify-center gap-1">
+			<p class="text-2xl font-bold">Are you sure?</p>
+			<p class="text-md text-center text-neutral-500">
+				Are you sure you want to delete <span class="font-bold"
+					>{itemState.itemToDelete?.itemName}</span
+				>? This action cannot be undone.
+			</p>
+		</span>
+		<div class="flex items-center justify-center gap-2">
+			<button
+				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-150 active:scale-90"
+				onclick={() => itemState.closeModal('DELETE')}>Cancel</button
+			>
+			<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
+				<button
+					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-150 active:scale-90"
+					disabled={deleting}
+				>
+					Delete
+				</button>
+			</form>
+		</div>
+	</div>
+</Modal>
 
 <style>
 	h1[contenteditable='true'] {

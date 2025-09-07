@@ -43,11 +43,11 @@
 	{/if}
 </div>
 
-{#if NavigationSkeleton}
+<!-- {#if NavigationSkeleton}
 	<NavigationSkeleton />
-{:else}
+{:else} -->
 	{@render children()}
-{/if}
+<!-- {/if} -->
 
 <style>
 	:global(body) {

@@ -80,7 +80,7 @@ export const actions = {
 
 		if (typeof wishlistId !== 'string') return error(400);
 
-		try {
+		try { // TODO: Maybe make configurable how long it is shared for?
 			const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
 			const now = new Date();
 			let newShareLink: string | null = null;

@@ -1,8 +1,5 @@
 <script>
 	import { ChevronRight } from 'lucide-svelte';
-	import googleLogo from '$lib/assets/google.svg';
-	import githubLogo from '$lib/assets/github.svg';
-	import discordLogo from '$lib/assets/discord.svg';
 	import OauthProviders from '$lib/components/oauth-providers.svelte';
 </script>
 

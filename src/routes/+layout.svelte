@@ -46,7 +46,8 @@
 <!-- {#if NavigationSkeleton}
 	<NavigationSkeleton />
 {:else} -->
-	{@render children()}
+{@render children()}
+
 <!-- {/if} -->
 
 <style>

@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { Check, Plus, SquarePen, Trash2, TriangleAlert, X } from 'lucide-svelte';
+	import Check from 'lucide-svelte/icons/check';
+	import Plus from 'lucide-svelte/icons/plus';
+	import SquarePen from 'lucide-svelte/icons/square-pen';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
+	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
+	import X from 'lucide-svelte/icons/x';
 	import type { PageProps } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import { enhance } from '$app/forms';

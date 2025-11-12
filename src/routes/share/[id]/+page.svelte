@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { FileX, Link } from 'lucide-svelte';
+	import FileX from 'lucide-svelte/icons/file-x';
+	import Link from 'lucide-svelte/icons/link';
 	import type { PageProps } from './$types';
 	import Cloud from '$lib/components/cloud.svelte';
 

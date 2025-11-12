@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { ClipboardCheck, Plus, TriangleAlert } from 'lucide-svelte';
+	import Plus from 'lucide-svelte/icons/plus';
+	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
+	import ClipboardCheck from 'lucide-svelte/icons/clipboard-check';
 	import type { PageProps } from './$types';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import { enhance } from '$app/forms';

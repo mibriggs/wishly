@@ -5,7 +5,10 @@
 	import { wishlistSchema } from '$lib/schema';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { Lock, LockOpen, Share, Trash2 } from 'lucide-svelte';
+	import Lock from 'lucide-svelte/icons/lock';
+	import LockOpen from 'lucide-svelte/icons/lock-open';
+	import Share from 'lucide-svelte/icons/share';
+	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import LoadingSpinner from './loading-spinner.svelte';
 
 	interface Props {

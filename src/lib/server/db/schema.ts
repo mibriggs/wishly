@@ -1,7 +1,8 @@
-import { isNull, sql, type InferSelectModel } from 'drizzle-orm';
+import { isNull, type InferSelectModel } from 'drizzle-orm';
 import {
 	boolean,
 	decimal,
+	index,
 	integer,
 	pgTable,
 	timestamp,
@@ -28,7 +29,10 @@ export const userTable = pgTable('users', {
 	state: varchar('state', { length: 255 }),
 	zipCode: integer('zip_code'),
 	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
-});
+}, (table) => [
+	index("discord_id_index").on(table.discordId),
+	index("github_id_index").on(table.githubId)
+]);
 
 export const sessionTable = pgTable('sessions', {
 	id: varchar('id', { length: 255 }).primaryKey().unique(),
@@ -58,7 +62,11 @@ export const wishlistTable = pgTable('wishlists', {
 	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
-});
+}, (table) => [
+	index("wishlist_to_user_id_index").on(table.userId),
+	index("wishlist_is_deleted_index").on(table.isDeleted),
+	index("wishlist_updated_at_index").on(table.updatedAt),
+]);
 
 // TODO: notes, sizes etc
 // TODO: a way to claim or show intent of buying, lastly isBought? by who etc...
@@ -77,7 +85,10 @@ export const wishlistItemTable = pgTable('wishlist_items', {
 	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
-});
+}, (table) => [
+	index("items_to_wishlist_id_index").on(table.wishlistId),
+	index("items_is_deleted_index").on(table.isDeleted)
+]);
 
 export const sharedWishlistTable = pgTable(
 	'shared_wishlists',
@@ -91,7 +102,8 @@ export const sharedWishlistTable = pgTable(
 		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
 	},
 	(table) => [
-		uniqueIndex('one_null_date_per_fk').on(table.deletedAt).where(isNull(table.deletedAt))
+		uniqueIndex('one_null_date_per_fk').on(table.deletedAt).where(isNull(table.deletedAt)),
+		index("shared_to_wishlist_id_index").on(table.wishlistId),
 	]
 );
 

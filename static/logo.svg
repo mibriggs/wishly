@@ -1,9 +1,0 @@
-<svg baseProfile="tiny" height="124px" version="1.2" width="124px" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <defs/>
-  <rect fill="#2D76EE" height="124px" rx="24" width="124px" x="0" y="0"/>
-  <path d="M62 100C50 90 20 65 20 45C20 30 30 20 45 20C52 20 58 24 62 30C66 24 72 20 79 20C94 20 104 30 104 45C104 65 74 90 62 100Z" fill="white" stroke="black" stroke-linejoin="round" stroke-width="3"/>
-  <polyline fill="none" points="48,55 60,68 80,45" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
-  <g transform="translate(85, 90) scale(1.5)">
-	<path d="M2 0v16.902l2.028-2.481 1.503 1.88 1.501-1.875 1.499 1.875 1.5-1.875 1.5 1.875 1.499-1.875 1.97 2.46v-16.886h-13zM14 14.036l-0.97-1.211-1.499 1.875-1.5-1.875-1.5 1.875-1.499-1.875-1.501 1.875-1.495-1.87-1.036 1.268v-13.098h11v13.036zM10.997 4h-6v-1h6v1zM8.997 8h-4v-1h4v1zM11.978 6h-7v-1h7v1zM5 10h7v1h-7v-1z" strole-width="20" />
-    </g>
-</svg>

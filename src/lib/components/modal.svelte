@@ -23,8 +23,7 @@
 		if (isOpen) {
 			modal.showModal();
 			lockScroll(document, window);
-		}
-		else {
+		} else {
 			unlockScroll(document, window);
 		}
 	});

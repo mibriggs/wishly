@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { lockScroll, unlockScroll } from '$lib';
 	import type { Snippet } from 'svelte';
 	import { twMerge } from 'tailwind-merge';
 
@@ -21,6 +22,10 @@
 	$effect(() => {
 		if (isOpen) {
 			modal.showModal();
+			lockScroll(document, window);
+		}
+		else {
+			unlockScroll(document, window);
 		}
 	});
 

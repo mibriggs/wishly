@@ -93,12 +93,10 @@ export const actions = {
 					const newLink = await SharedWishlistService.createSharedLink(wishlistId);
 					if (newLink) {
 						newShareLink = newLink.id;
-					}
-					else {
+					} else {
 						newShareLink = null;
 					}
-				}
-				else {
+				} else {
 					newShareLink = null;
 				}
 			} else if (shareLink && now.getTime() - shareLink.updatedAt.getTime() <= THIRTY_DAYS) {

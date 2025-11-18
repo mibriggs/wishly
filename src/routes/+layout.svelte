@@ -8,6 +8,7 @@
 
 	let { data, children }: LayoutProps = $props();
 	let showDropdown = $state(false);
+	let dropdownContainer: HTMLDivElement | undefined = $state();
 
 	const toggleDropdown = () => {
 		showDropdown = !showDropdown;
@@ -16,6 +17,22 @@
 	const closeDropdown = () => {
 		showDropdown = false;
 	};
+
+	$effect(() => {
+		if (!showDropdown) return;
+
+		const handleClickOutside = (event: MouseEvent) => {
+			if (dropdownContainer && !dropdownContainer.contains(event.target as Node)) {
+				closeDropdown();
+			}
+		};
+
+		document.addEventListener('click', handleClickOutside);
+
+		return () => {
+			document.removeEventListener('click', handleClickOutside);
+		};
+	});
 </script>
 
 <Toaster />
@@ -28,7 +45,7 @@
 	{#if data.user.isGuest}
 		<a href="/auth/sign-in" class="select-none underline" data-sveltekit-preload-data>Sign In</a>
 	{:else}
-		<div class="relative">
+		<div class="relative" bind:this={dropdownContainer}>
 			<button
 				class="flex items-center gap-1 rounded-md px-2 py-1 transition hover:bg-neutral-200"
 				onclick={toggleDropdown}

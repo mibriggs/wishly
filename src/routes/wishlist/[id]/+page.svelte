@@ -40,10 +40,11 @@
 
 	let transitionOver = $state(false);
 	let creating: boolean = $state(false);
+	let updating: boolean = $state(false);
 	let deleting: boolean = $state(false);
 	let renaming: boolean = $state(false);
 
-	const disabled = $derived(validationState.disabled || creating);
+	const disabled = $derived(validationState.disabled || creating || updating);
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
 		creating = true;
@@ -74,6 +75,50 @@
 			}
 			creating = false;
 		};
+	};
+
+	const submitEditItem: SubmitFunction = ({ formData }) => {
+		updating = true;
+		const loadingId = toast.loading('Updating...');
+
+		if (wishlistData.wishlist && itemState.itemToEdit) {
+			formData.append('wishlistId', wishlistData.wishlist.id);
+			formData.append('itemId', itemState.itemToEdit.id);
+			formData.append('itemQuantity', `${itemState.quantity}`);
+		}
+
+		return async ({ update, result }) => {
+			if (result.type === 'failure') {
+				const errorDetails = result.data;
+				if (errorDetails) {
+					validationState.updateErrors(errorDetails);
+				}
+				toast.error('Could not update item', { id: loadingId });
+				await update({ reset: false, invalidateAll: false });
+			} else if (result.type === 'success') {
+				const updatedItem = result.data as { updated: WishlistItem };
+				itemState.closeModal('NEW');
+				itemState.reset();
+				validationState.reset();
+				toast.success('Item updated', { id: loadingId });
+
+				// Update the item in the list
+				const index = wishlistData.items.findIndex((item) => item.id === updatedItem.updated.id);
+				if (index !== -1) {
+					wishlistData.items[index] = updatedItem.updated;
+				}
+				await update({ invalidateAll: false });
+			}
+			updating = false;
+		};
+	};
+
+	const submitItem: SubmitFunction = (params) => {
+		if (itemState.mode === 'add') {
+			return submitNewItem(params);
+		} else {
+			return submitEditItem(params);
+		}
 	};
 
 	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
@@ -139,6 +184,16 @@
 		itemState.isDeleteItemModalOpen = true;
 	};
 
+	const handleItemEdit = (selectedItem: WishlistItem) => {
+		validationState.reset();
+		itemState.openEditModal(selectedItem);
+
+		// Validate pre-populated fields so button becomes enabled
+		validationState.validateName(selectedItem.itemName);
+		validationState.validateUrl(selectedItem.url);
+		validationState.validateCost(parseFloat(selectedItem.price));
+	};
+
 	const handleEditName = async () => {
 		itemState.isNameEditable = true;
 
@@ -194,6 +249,7 @@
 		<span class="ml-auto flex items-center gap-4">
 			<button
 				class="transform rounded-md p-3 transition duration-150 hover:bg-amber-500/20 active:scale-90"
+				onclick={() => handleItemEdit(wishlistItem)}
 			>
 				<SquarePen color="#F59E0B" />
 			</button>
@@ -225,6 +281,7 @@
 		<span class="flex gap-2 self-end">
 			<button
 				class="transform rounded-md p-2 transition duration-150 hover:bg-amber-500/20 active:scale-90"
+				onclick={() => handleItemEdit(wishlistItem)}
 			>
 				<SquarePen color="#F59E0B" size="20" />
 			</button>
@@ -306,7 +363,7 @@
 			<button
 				aria-label="open new item modal"
 				class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-6 py-1 text-neutral-100 transition duration-150 active:scale-90"
-				onclick={() => (itemState.isNewItemModalOpen = true)}
+				onclick={() => itemState.openAddModal()}
 			>
 				<Plus size={16} />
 				<p>Add an item</p>
@@ -333,7 +390,7 @@
 		>
 			&times;
 		</button>
-		<form class="flex flex-col gap-2" method="POST" use:enhance={submitNewItem}>
+		<form class="flex flex-col gap-2" method="POST" use:enhance={submitItem}>
 			<span class="flex flex-col items-start justify-center gap-1">
 				<input
 					type="text"
@@ -405,12 +462,12 @@
 					Cancel
 				</button>
 				<button
-					formaction="?/createWishlistItem"
-					aria-label="create new item"
+					formaction={itemState.mode === 'add' ? '?/createWishlistItem' : '?/updateWishlistItem'}
+					aria-label={itemState.mode === 'add' ? 'create new item' : 'update item'}
 					class="transform select-none rounded-md border-2 border-green-500 bg-green-100 px-4 py-2 text-green-500 shadow-lg transition duration-150 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-300 disabled:text-neutral-500"
 					{disabled}
 				>
-					Add to Wishlist
+					{itemState.mode === 'add' ? 'Add to Wishlist' : 'Update Item'}
 				</button>
 			</span>
 		</form>

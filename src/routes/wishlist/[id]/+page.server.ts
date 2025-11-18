@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
-import { deleteItemSchema, newItemSchema, uuidSchema } from '$lib/schema';
+import { deleteItemSchema, newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
 import { shortIdToUuid } from '$lib';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
@@ -72,6 +72,41 @@ export const actions = {
 				return fail(400, { errorCause: 'Failed to create item', success: false });
 			}
 			return { created: newItem };
+		} else {
+			return fail(400, maybeItem.error.flatten().fieldErrors);
+		}
+	},
+
+	updateWishlistItem: async ({ request, locals }) => {
+		const formData = await request.formData();
+		const maybeItem = updateItemSchema.safeParse(Object.fromEntries(formData.entries()));
+
+		if (maybeItem.success) {
+			const item = maybeItem.data;
+			const wishlistToUpdate = await WishlistService.findByWishlistAndUserId(
+				item.wishlistId,
+				locals.user.id
+			);
+
+			if (!wishlistToUpdate) {
+				return fail(400, { errorCause: 'Wishlist not found', success: false });
+			}
+
+			const updatedItems = await WishlistItemsService.updateItem(
+				item.itemId,
+				item.wishlistId,
+				locals.user.id,
+				item.itemName,
+				item.itemUrl,
+				item.itemQuantity,
+				item.itemCost.toString()
+			);
+
+			if (updatedItems.length === 0) {
+				return fail(400, { errorCause: 'Failed to update item', success: false });
+			}
+
+			return { updated: updatedItems[0] };
 		} else {
 			return fail(400, maybeItem.error.flatten().fieldErrors);
 		}

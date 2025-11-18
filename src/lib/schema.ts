@@ -67,6 +67,10 @@ export const newItemSchema = z.object({
 	])
 });
 
+export const updateItemSchema = newItemSchema.extend({
+	itemId: z.string().uuid()
+});
+
 export const deleteItemSchema = z.object({
 	itemId: z.string().uuid(),
 	wishlistId: z.string().uuid()

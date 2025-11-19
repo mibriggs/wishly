@@ -73,10 +73,10 @@
 						Settings
 					</a>
 					<a
-						href="/auth/sign-out"
+						href="/api/v1/auth/sign-out"
+						rel="external"
 						class="flex items-center gap-2 px-4 py-2 text-sm transition hover:bg-neutral-100"
 						onclick={closeDropdown}
-						data-sveltekit-preload-data
 					>
 						<LogOut size={16} />
 						Sign Out

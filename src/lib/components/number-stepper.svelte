@@ -1,5 +1,5 @@
 <script lang="ts">
-	interface NumberStepperProps {
+	interface Props {
 		min?: number;
 		max?: number;
 		value: number;
@@ -15,7 +15,7 @@
 		interval,
 		speed = 300,
 		velocity = 0
-	}: NumberStepperProps = $props();
+	}: Props = $props();
 
 	const digitCount = $derived(String(maxNumber).length);
 	const digits = $derived(String(value).padStart(digitCount, '0').split('').map(Number));

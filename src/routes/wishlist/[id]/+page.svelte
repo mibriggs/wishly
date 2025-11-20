@@ -22,6 +22,7 @@
 
 	let { data }: PageProps = $props();
 
+	type PageState = 'idle' | 'creating' | 'updating' | 'deleting' | 'renaming' | 'loading';
 	class StreamedWishlistItems {
 		wishlist: Wishlist | undefined = $state();
 		items: WishlistItem[] = $state([]);
@@ -38,16 +39,11 @@
 	const itemState = new WishlistItemStateClass();
 	const validationState = new ValidationStateClass();
 
-	let transitionOver = $state(false);
-	let creating: boolean = $state(false);
-	let updating: boolean = $state(false);
-	let deleting: boolean = $state(false);
-	let renaming: boolean = $state(false);
-
-	const disabled = $derived(validationState.disabled || creating || updating);
+	let pageState: PageState = $state<PageState>('loading');
+	const disabled = $derived(validationState.disabled || pageState !== 'idle');
 
 	const submitNewItem: SubmitFunction = ({ formData }) => {
-		creating = true;
+		pageState = 'creating';
 		const loadingId = toast.loading('Loading...');
 
 		if (wishlistData.wishlist) {
@@ -73,12 +69,12 @@
 				wishlistData.items.push(newWishlistItem.created);
 				await update({ invalidateAll: false });
 			}
-			creating = false;
+			pageState = 'idle';
 		};
 	};
 
 	const submitEditItem: SubmitFunction = ({ formData }) => {
-		updating = true;
+		pageState = 'updating';
 		const loadingId = toast.loading('Updating...');
 
 		if (wishlistData.wishlist && itemState.itemToEdit) {
@@ -109,7 +105,7 @@
 				}
 				await update({ invalidateAll: false });
 			}
-			updating = false;
+			pageState = 'idle';
 		};
 	};
 
@@ -122,7 +118,7 @@
 	};
 
 	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
-		deleting = true;
+		pageState = 'deleting';
 		const loadingId = toast.loading('Deleting...');
 
 		if (itemState.itemToDelete) {
@@ -145,13 +141,13 @@
 			}
 			itemState.closeModal('DELETE');
 			await update({ reset: true, invalidateAll: false });
-			deleting = false;
+			pageState = 'idle';
 		};
 	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
 		const renamingId = toast.loading('Renaming...');
-		renaming = true;
+		pageState = 'renaming';
 		if (wishlistData.wishlist) {
 			formData.append('newName', itemState.newName);
 			formData.append('oldName', wishlistData.wishlist.name);
@@ -175,7 +171,7 @@
 				toast.success('Renamed!', { id: renamingId });
 			}
 			await update({ reset: true, invalidateAll: false });
-			renaming = false;
+			pageState = 'idle';
 		};
 	};
 
@@ -296,11 +292,11 @@
 {/snippet}
 
 {#await wishlistData.streamWishlistItems()}
-	<div out:fade onoutroend={() => (transitionOver = true)}>
+	<div out:fade onoutroend={() => (pageState = 'idle')}>
 		<DetailsSkeleton />
 	</div>
 {:then _}
-	{#if transitionOver}
+	{#if pageState !== 'loading'}
 		<main class="w-full p-4" in:fade>
 			<div class="mb-4 flex items-center gap-4">
 				<h1
@@ -316,7 +312,7 @@
 					<button
 						class="transform p-2 transition duration-150 active:scale-90"
 						onclick={handleEditName}
-						disabled={renaming}
+						disabled={pageState === 'renaming'}
 					>
 						<SquarePen />
 					</button>
@@ -507,7 +503,7 @@
 			<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
 				<button
 					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-150 active:scale-90"
-					disabled={deleting}
+					disabled={pageState === 'deleting'}
 				>
 					Delete
 				</button>

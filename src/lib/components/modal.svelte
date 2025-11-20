@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte';
 	import { twMerge } from 'tailwind-merge';
 
-	interface ModalProps {
+	interface Props {
 		id: string;
 		class?: string;
 		isOpen?: boolean;
@@ -11,7 +11,7 @@
 		onModalClose: () => void;
 	}
 
-	let { id, onModalClose, children, isOpen = false, class: className = '' }: ModalProps = $props();
+	let { id, onModalClose, children, isOpen = false, class: className = '' }: Props = $props();
 	let modal: HTMLDialogElement;
 	let isClosing: boolean = $state(false);
 

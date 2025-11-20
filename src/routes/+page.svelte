@@ -19,6 +19,8 @@
 		text: string;
 		url: string;
 	};
+	type ShareDuration = '1 hour' | '1 day' | '7 days' | '14 days' | '30 days' | '90 days';
+	type PageState = 'idle' | 'creating' | 'deleting' | 'loading';
 
 	class StreamedWishlist {
 		wishlists: Wishlist[] = $state([]);
@@ -43,13 +45,15 @@
 	let clickedWishlist: string = $state('');
 	let shareLink: string = $state('');
 
-	let creating: boolean = $state(false);
-	let deleting: boolean = $state(false);
+	let ShareDuration: ShareDuration = $state<ShareDuration>('30 days');
+	let pageState: PageState = $state('loading');
+	let hasGuestCreatedList: boolean = $derived(data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1)
+
 
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
+		pageState = 'deleting';
 		const loadingId = toast.loading('Deleting...');
-		deleting = true;
 
 		return async ({ update, result }) => {
 			if (result.type === 'success' && result.data) {
@@ -73,16 +77,15 @@
 				await update({ reset: true, invalidateAll: true });
 			}
 			deleteWishlistModal.close();
-			deleting = false;
+			pageState = 'idle';
 		};
 	};
 
 	const submitCreateWishlist: SubmitFunction = () => {
-		creating = true;
+		pageState = 'creating'
 		const loadingId = toast.loading('Loading...');
 
 		return async ({ update, result }) => {
-			creating = false;
 			if (result.type === 'failure') {
 				toast.error('Could not create wishlist', { id: loadingId });
 				await update();
@@ -93,6 +96,7 @@
 				toast.success('New wishlist created', { id: loadingId });
 				await update({ invalidateAll: false });
 			}
+			pageState = 'idle';
 		};
 	};
 
@@ -169,8 +173,6 @@
 			}
 		});
 	};
-
-	let transitionOver: boolean = $state(false);
 </script>
 
 {#snippet addMore()}
@@ -187,11 +189,11 @@
 {/snippet}
 
 {#await wishlistsData.streamWishlists()}
-	<div out:fade onoutroend={() => (transitionOver = true)}>
+	<div out:fade onoutroend={() => (pageState = 'idle')}>
 		<ListSkeleton />
 	</div>
 {:then _}
-	{#if transitionOver}
+	{#if pageState !== 'loading'}
 		<main in:fade>
 			<ul
 				class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
@@ -225,10 +227,9 @@
 					>
 						<button
 							class="group w-fit disabled:cursor-not-allowed"
-							disabled={(data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1) ||
-								creating}
+							disabled={hasGuestCreatedList ||pageState === 'creating'}
 						>
-							{#if creating}
+							{#if pageState === 'creating'}
 								<div
 									class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
 								>
@@ -278,7 +279,7 @@
 			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
 				<button
 					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
-					disabled={deleting}
+					disabled={pageState === 'deleting'}
 				>
 					Delete
 				</button>
@@ -308,6 +309,15 @@
 			<p class="text-2xl font-bold">Are you sure?</p>
 			<p class="text-md text-center text-neutral-500">This link will be shared</p>
 		</span>
+		
+		<!-- <label>Link expires after <span>{ShareDuration}</span><ß/label>
+		<select name="cars" id="cars">
+			<option value="volvo">Volvo</option>
+			<option value="saab">Saab</option>
+			<option value="mercedes">Mercedes</option>
+			<option value="audi">Audi</option>
+		</select> -->
+
 		<div class="flex items-center justify-center gap-2">
 			<button
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"

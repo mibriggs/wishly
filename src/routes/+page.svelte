@@ -45,7 +45,7 @@
 	let clickedWishlist: string = $state('');
 	let shareLink: string = $state('');
 
-	let ShareDuration: ShareDuration = $state<ShareDuration>('30 days');
+	let shareDuration: ShareDuration = $state<ShareDuration>('30 days');
 	let pageState: PageState = $state('loading');
 	let hasGuestCreatedList: boolean = $derived(data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1)
 

@@ -14,13 +14,20 @@
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 
-	const shareDurationOptions = ['1 hour', '1 day', '7 days', '14 days', '30 days', '90 days'] as const;
+	const shareDurationOptions = [
+		'1 hour',
+		'1 day',
+		'7 days',
+		'14 days',
+		'30 days',
+		'90 days'
+	] as const;
 	type ShareData = {
 		title: string;
 		text: string;
 		url: string;
 	};
-	type ShareDuration = typeof shareDurationOptions[number];
+	type ShareDuration = (typeof shareDurationOptions)[number];
 	type PageState = 'idle' | 'creating' | 'deleting' | 'loading';
 
 	class StreamedWishlist {
@@ -49,8 +56,9 @@
 
 	let shareDuration: ShareDuration = $state<ShareDuration>('30 days');
 	let pageState: PageState = $state('loading');
-	let hasGuestCreatedList: boolean = $derived(data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1)
-
+	let hasGuestCreatedList: boolean = $derived(
+		data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1
+	);
 
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
@@ -84,7 +92,7 @@
 	};
 
 	const submitCreateWishlist: SubmitFunction = () => {
-		pageState = 'creating'
+		pageState = 'creating';
 		const loadingId = toast.loading('Loading...');
 
 		return async ({ update, result }) => {
@@ -229,7 +237,7 @@
 					>
 						<button
 							class="group w-fit disabled:cursor-not-allowed"
-							disabled={hasGuestCreatedList ||pageState === 'creating'}
+							disabled={hasGuestCreatedList || pageState === 'creating'}
 						>
 							{#if pageState === 'creating'}
 								<div
@@ -312,9 +320,23 @@
 			<p class="text-md text-center text-neutral-500">This link will be shared</p>
 		</span>
 
-		<div class="flex items-center border rounded-md overflow-hidden pl-2 bg-neutral-200 shadow-md">
-			<button onclick={() => dropdownElement?.showPicker() || dropdownElement?.click()}>Link expires after</button>
-			<select id="duration" class=" border-none p-2 outline-none cursor-pointer" bind:this={dropdownElement} bind:value={shareDuration}>
+		<div class="flex items-center overflow-hidden rounded-md border bg-neutral-200 pl-2 shadow-md">
+			<span
+				role="button"
+				tabindex="0"
+				aria-controls="duration"
+				onkeydown={(e) =>
+					(e.key === 'Enter' || e.key === ' ') &&
+					(dropdownElement?.showPicker() || dropdownElement?.click())}
+				onclick={() => dropdownElement?.showPicker() || dropdownElement?.click()}
+				>Link expires after</span
+			>
+			<select
+				id="duration"
+				class=" cursor-pointer border-none p-2 outline-none"
+				bind:this={dropdownElement}
+				bind:value={shareDuration}
+			>
 				{#each shareDurationOptions as duration}
 					<option>{duration}</option>
 				{/each}

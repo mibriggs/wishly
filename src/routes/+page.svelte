@@ -320,20 +320,25 @@
 			<p class="text-md text-center text-neutral-500">This link will be shared</p>
 		</span>
 
-		<div class="flex items-center overflow-hidden rounded-md border bg-neutral-200 pl-2 shadow-md">
-			<span
-				role="button"
-				tabindex="0"
-				aria-controls="duration"
-				onkeydown={(e) =>
-					(e.key === 'Enter' || e.key === ' ') &&
-					(dropdownElement?.showPicker() || dropdownElement?.click())}
-				onclick={() => dropdownElement?.showPicker() || dropdownElement?.click()}
-				>Link expires after</span
+		<div
+			class="flex items-center overflow-hidden rounded-md border bg-neutral-200 py-1 pl-2 shadow-md"
+		>
+			<button
+				onclick={(e) => {
+					e.preventDefault();
+					dropdownElement?.showPicker();
+					if (!dropdownElement?.showPicker) {
+						dropdownElement?.focus();
+						dropdownElement?.click();
+					}
+				}}
+				class="text-[#666]"
 			>
+				Link expires after:
+			</button>
 			<select
 				id="duration"
-				class=" cursor-pointer border-none p-2 outline-none"
+				class=" cursor-pointer border-none bg-neutral-200 p-2 font-semibold outline-none"
 				bind:this={dropdownElement}
 				bind:value={shareDuration}
 			>

@@ -10,16 +10,17 @@
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
-	import { fade, scale } from 'svelte/transition';
+	import { fade, scale, slide } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 
+	const shareDurationOptions = ['1 hour', '1 day', '7 days', '14 days', '30 days', '90 days'] as const;
 	type ShareData = {
 		title: string;
 		text: string;
 		url: string;
 	};
-	type ShareDuration = '1 hour' | '1 day' | '7 days' | '14 days' | '30 days' | '90 days';
+	type ShareDuration = typeof shareDurationOptions[number];
 	type PageState = 'idle' | 'creating' | 'deleting' | 'loading';
 
 	class StreamedWishlist {
@@ -39,6 +40,7 @@
 
 	let { data }: PageProps = $props();
 
+	let dropdownElement: HTMLSelectElement | undefined = $state();
 	let isDeleteModalOpen: boolean = $state(false);
 	let isCopyModalOpen: boolean = $state(false);
 
@@ -309,14 +311,15 @@
 			<p class="text-2xl font-bold">Are you sure?</p>
 			<p class="text-md text-center text-neutral-500">This link will be shared</p>
 		</span>
-		
-		<!-- <label>Link expires after <span>{ShareDuration}</span><ß/label>
-		<select name="cars" id="cars">
-			<option value="volvo">Volvo</option>
-			<option value="saab">Saab</option>
-			<option value="mercedes">Mercedes</option>
-			<option value="audi">Audi</option>
-		</select> -->
+
+		<div class="flex items-center border rounded-md overflow-hidden pl-2 bg-neutral-200 shadow-md">
+			<button onclick={() => dropdownElement?.showPicker() || dropdownElement?.click()}>Link expires after</button>
+			<select id="duration" class=" border-none p-2 outline-none cursor-pointer" bind:this={dropdownElement} bind:value={shareDuration}>
+				{#each shareDurationOptions as duration}
+					<option>{duration}</option>
+				{/each}
+			</select>
+		</div>
 
 		<div class="flex items-center justify-center gap-2">
 			<button

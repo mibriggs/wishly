@@ -10,7 +10,7 @@
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
-	import { fade, scale, slide } from 'svelte/transition';
+	import { fade, scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 
@@ -120,7 +120,7 @@
 		shareLink = link;
 	};
 
-	const shareOrCopyLink = async () => {
+	const doShareLink = async () => {
 		const shareData: ShareData = {
 			title: 'Wishlist',
 			text: 'Checkout my wishlist!',
@@ -132,21 +132,15 @@
 				throw new Error('Web Share unavailable for this payload/env');
 			}
 			await shareLinkToGuest(shareData);
+			copyWishlistModal.close();
 		} catch (err: any) {
 			if (err?.name === 'AbortError') {
 				toast.error('Share cancelled');
+				copyWishlistModal.close();
 				return;
 			}
 
-			const warningId = toast('Failed to share, copying link', { icon: '⚠️' });
-			const isCopied = await copyText(shareLink);
-			if (isCopied) {
-				toast.success('Link copied to clipboard!', { id: warningId });
-			} else {
-				toast.error('Failed to copy to clipboard, try again', { id: warningId });
-			}
-		} finally {
-			copyWishlistModal.close();
+			toast('Sharing not available, copy instead.', { icon: '⚠️' });
 		}
 	};
 
@@ -173,6 +167,16 @@
 			console.error('Failed to copy:', err);
 			return false;
 		}
+	};
+
+	const copyLinkToClipboard = async () => {
+		const isCopied = await copyText(shareLink);
+		if (isCopied) {
+			toast.success('Link copied to clipboard!');
+		} else {
+			toast.error('Failed to copy to clipboard, try again');
+		}
+		copyWishlistModal.close();
 	};
 
 	const updateWishlistLock = (id: string, isLocked: boolean, updatedAt: Date) => {
@@ -261,7 +265,7 @@
 <Modal
 	id="delete-wishlist-modal"
 	isOpen={isDeleteModalOpen}
-	onModalClose={() => (isDeleteModalOpen = !isDeleteModalOpen)}
+	onModalClose={() => (isDeleteModalOpen = false)}
 	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
 	bind:this={deleteWishlistModal}
 >
@@ -301,7 +305,7 @@
 <Modal
 	id="copy-wishlist-modal"
 	isOpen={isCopyModalOpen}
-	onModalClose={() => (isCopyModalOpen = !isCopyModalOpen)}
+	onModalClose={() => (isCopyModalOpen = false)}
 	class="w-11/12 max-w-[560px] rounded-lg p-4 shadow-sm backdrop:bg-stone-400 backdrop:bg-opacity-5 md:w-2/3 lg:w-1/2"
 	bind:this={copyWishlistModal}
 >
@@ -326,8 +330,11 @@
 			<button
 				onclick={(e) => {
 					e.preventDefault();
-					dropdownElement?.showPicker();
-					if (!dropdownElement?.showPicker) {
+
+					if (dropdownElement?.showPicker) {
+						dropdownElement.showPicker();
+					}
+					else {
 						dropdownElement?.focus();
 						dropdownElement?.click();
 					}
@@ -351,11 +358,11 @@
 		<div class="flex items-center justify-center gap-2">
 			<button
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
-				onclick={() => copyWishlistModal.close()}>Cancel</button
+				onclick={copyLinkToClipboard}>Copy</button
 			>
 			<button
 				class="transform select-none rounded-md border-2 border-blue-500 bg-blue-100 px-4 py-2 text-blue-500 shadow-lg transition duration-100 active:scale-90"
-				onclick={shareOrCopyLink}
+				onclick={doShareLink}
 			>
 				Share
 			</button>

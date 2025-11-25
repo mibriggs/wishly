@@ -24,6 +24,7 @@
 			modal.showModal();
 			lockScroll(document, window);
 		} else {
+			modal.close();
 			unlockScroll(document, window);
 		}
 	});

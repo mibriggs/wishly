@@ -13,6 +13,9 @@
 	import { fade, scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
+	import { createFormHandler } from '$lib/utils/form-handler';
+	import { z } from 'zod';
+	import { wishlistSchema } from '$lib/schema';
 
 	const shareDurationOptions = [
 		'1 hour',
@@ -60,6 +63,34 @@
 		data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1
 	);
 
+	const submitDeleteWishlistV2: SubmitFunction = createFormHandler<{
+		success: Boolean;
+		wishlist: Wishlist;
+	}>({
+		onStart: (formData) => {
+			formData.append('wishlistId', clickedWishlist);
+			pageState = 'deleting';
+		},
+		onSuccess: (data) => {
+			if (data.success) {
+				wishlistsData.nonDeletedWishlists
+					.filter((list) => list.id === data.wishlist.id)
+					.forEach((list) => (list.isDeleted = true));
+			}
+			pageState = 'idle';
+			isDeleteModalOpen = false;
+		},
+		onError: () => {
+			pageState = 'idle';
+			isDeleteModalOpen = false;
+		},
+		successSchema: z.object({ success: z.boolean(), wishlist: wishlistSchema }),
+		loadingMessage: 'Deleting...',
+		successMessage: 'Wishlist deleted',
+		errorMessage: 'Failed to delete wishlist',
+		invalidateAll: false
+	});
+
 	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
 		formData.append('wishlistId', clickedWishlist);
 		pageState = 'deleting';
@@ -90,6 +121,19 @@
 			pageState = 'idle';
 		};
 	};
+
+	const submitCreateWishlistV2 = createFormHandler<{ wishlist: Wishlist }>({
+		onStart: () => (pageState = 'creating'),
+		onError: () => (pageState = 'idle'),
+		onSuccess: (data) => {
+			wishlistsData.wishlists.unshift(data.wishlist);
+			pageState = 'idle';
+		},
+		successSchema: z.object({ wishlist: wishlistSchema }),
+		successMessage: 'New wishlist created!',
+		errorMessage: 'Could not create wishlist',
+		invalidateAll: false
+	});
 
 	const submitCreateWishlist: SubmitFunction = () => {
 		pageState = 'creating';
@@ -237,7 +281,7 @@
 						method="POST"
 						action="?/createWishlist"
 						class="w-fit"
-						use:enhance={submitCreateWishlist}
+						use:enhance={submitCreateWishlistV2}
 					>
 						<button
 							class="group w-fit disabled:cursor-not-allowed"
@@ -290,7 +334,7 @@
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
 				onclick={() => deleteWishlistModal.close()}>Cancel</button
 			>
-			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
+			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlistV2}>
 				<button
 					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
 					disabled={pageState === 'deleting'}
@@ -333,8 +377,7 @@
 
 					if (dropdownElement?.showPicker) {
 						dropdownElement.showPicker();
-					}
-					else {
+					} else {
 						dropdownElement?.focus();
 						dropdownElement?.click();
 					}

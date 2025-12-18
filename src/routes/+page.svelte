@@ -93,7 +93,9 @@
 
 	const submitCreateWishlist: SubmitFunction = createFormHandler<{ wishlist: Wishlist }>({
 		onStart: () => (pageState = 'creating'),
-		onError: () => { pageState = 'idle' },
+		onError: () => {
+			pageState = 'idle';
+		},
 		onSuccess: (data) => {
 			wishlistsData.wishlists.unshift(data.wishlist);
 			pageState = 'idle';

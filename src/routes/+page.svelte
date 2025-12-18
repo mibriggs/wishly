@@ -63,8 +63,8 @@
 		data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1
 	);
 
-	const submitDeleteWishlistV2: SubmitFunction = createFormHandler<{
-		success: Boolean;
+	const submitDeleteWishlist: SubmitFunction = createFormHandler<{
+		success: boolean;
 		wishlist: Wishlist;
 	}>({
 		onStart: (formData) => {
@@ -91,40 +91,9 @@
 		invalidateAll: false
 	});
 
-	const submitDeleteWishlist: SubmitFunction = ({ formData }) => {
-		formData.append('wishlistId', clickedWishlist);
-		pageState = 'deleting';
-		const loadingId = toast.loading('Deleting...');
-
-		return async ({ update, result }) => {
-			if (result.type === 'success' && result.data) {
-				const deleteSucceed = result.data.success;
-				if (deleteSucceed === true) {
-					toast.success('Wishlist deleted', { id: loadingId });
-					await update({ invalidateAll: false });
-					const deletedWishlist = result.data.wishlist as Wishlist;
-					wishlistsData.nonDeletedWishlists
-						.filter((list) => list.id === deletedWishlist.id)
-						.forEach((list) => (list.isDeleted = true));
-				} else {
-					toast.error('Failed to delete wishlist', { id: loadingId });
-					await update({ reset: true, invalidateAll: true });
-				}
-			} else if (result.type === 'failure') {
-				toast.error('Failed to delete wishlist', { id: loadingId });
-				await update({ reset: true, invalidateAll: true });
-			} else if (result.type === 'error') {
-				toast.error('An error ocurred'), { id: loadingId };
-				await update({ reset: true, invalidateAll: true });
-			}
-			deleteWishlistModal.close();
-			pageState = 'idle';
-		};
-	};
-
-	const submitCreateWishlistV2 = createFormHandler<{ wishlist: Wishlist }>({
+	const submitCreateWishlist: SubmitFunction = createFormHandler<{ wishlist: Wishlist }>({
 		onStart: () => (pageState = 'creating'),
-		onError: () => (pageState = 'idle'),
+		onError: () => { pageState = 'idle' },
 		onSuccess: (data) => {
 			wishlistsData.wishlists.unshift(data.wishlist);
 			pageState = 'idle';
@@ -134,25 +103,6 @@
 		errorMessage: 'Could not create wishlist',
 		invalidateAll: false
 	});
-
-	const submitCreateWishlist: SubmitFunction = () => {
-		pageState = 'creating';
-		const loadingId = toast.loading('Loading...');
-
-		return async ({ update, result }) => {
-			if (result.type === 'failure') {
-				toast.error('Could not create wishlist', { id: loadingId });
-				await update();
-			}
-			if (result.type === 'success' && result.data) {
-				const newWishlist = result.data.wishlist as Wishlist;
-				wishlistsData.wishlists.unshift(newWishlist);
-				toast.success('New wishlist created', { id: loadingId });
-				await update({ invalidateAll: false });
-			}
-			pageState = 'idle';
-		};
-	};
 
 	const updateModalVisibility = (clickedId: string) => {
 		isDeleteModalOpen = true;
@@ -281,7 +231,7 @@
 						method="POST"
 						action="?/createWishlist"
 						class="w-fit"
-						use:enhance={submitCreateWishlistV2}
+						use:enhance={submitCreateWishlist}
 					>
 						<button
 							class="group w-fit disabled:cursor-not-allowed"
@@ -334,7 +284,7 @@
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
 				onclick={() => deleteWishlistModal.close()}>Cancel</button
 			>
-			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlistV2}>
+			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
 				<button
 					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
 					disabled={pageState === 'deleting'}

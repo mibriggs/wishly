@@ -48,6 +48,20 @@ export const wishlistSchema = z.object({
 	updatedAt: z.date()
 });
 
+export const wishlistItemSchema = z.object({
+	id: z.string(),
+	isDeleted: z.boolean(),
+	deletedAt: z.date().nullable(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	wishlistId: z.string(),
+	itemName: z.string(),
+	price: z.string(),
+	quantity: z.number(),
+	url: z.string(),
+	imageUrl: z.string().nullable()
+});
+
 export const newItemSchema = z.object({
 	wishlistId: z.string().uuid({ message: 'ID must be a UUID' }),
 	itemName: z

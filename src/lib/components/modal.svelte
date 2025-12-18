@@ -111,4 +111,8 @@
 			slide-down 500ms forwards,
 			fade-out 500ms forwards;
 	}
+
+	dialog::backdrop {
+		backdrop-filter: blur(2px);
+	}
 </style>

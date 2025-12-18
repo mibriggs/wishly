@@ -2,12 +2,17 @@ import type { SubmitFunction } from '@sveltejs/kit';
 import toast from 'svelte-french-toast';
 import type { z } from 'zod';
 
-interface FormHandlerOptions<T> {
+interface ErrorOverrides {
+	invalidateAll?: boolean;
+	resetForm?: boolean;
+}
+
+interface BaseFormHandlerOptions {
 	onStart?: (formData: FormData) => void;
-	onSuccess?: (data: T) => void | Promise<void>;
-	onNavigate?: () => void;
-	onError?: () => void;
-	successSchema?: z.ZodSchema;
+	onNavigate?: () => void | Promise<void>;
+	onError?: (
+		errorData?: unknown
+	) => void | Promise<void> | ErrorOverrides | Promise<ErrorOverrides>;
 	loadingMessage?: string;
 	successMessage?: string;
 	errorMessage?: string;
@@ -16,12 +21,24 @@ interface FormHandlerOptions<T> {
 	resetForm?: boolean;
 }
 
+interface FormHandlerOptionsWithSuccess<T> extends BaseFormHandlerOptions {
+	onSuccess: (data: T) => void | Promise<void>;
+	successSchema: z.ZodSchema;
+}
+
+interface FormHandlerOptionsWithoutSuccess extends BaseFormHandlerOptions {
+	onSuccess?: never;
+	successSchema?: never;
+}
+
+type FormHandlerOptions<T> = FormHandlerOptionsWithSuccess<T> | FormHandlerOptionsWithoutSuccess;
+
 export function createFormHandler<T>({
 	onStart,
 	onSuccess,
 	onError,
 	onNavigate,
-	successSchema = undefined,
+	successSchema,
 	loadingMessage = 'Loading...',
 	successMessage = 'Success!',
 	errorMessage = 'An error occurred',
@@ -33,6 +50,10 @@ export function createFormHandler<T>({
 		if (onStart) onStart(formData);
 
 		const loadingId = toast.loading(loadingMessage);
+		const formResetOptions: { invalidateAll: boolean; reset: boolean } = {
+			invalidateAll,
+			reset: resetForm
+		};
 
 		return async ({ update, result }) => {
 			if (result.type === 'success') {
@@ -45,12 +66,20 @@ export function createFormHandler<T>({
 						toast.error('An error occurred', { id: loadingId });
 					}
 				} else {
-					toast.error('An error occurred', { id: loadingId });
+					toast.success(successMessage, { id: loadingId });
 				}
 			} else if (result.type === 'error' || result.type === 'failure') {
-				invalidateAll = true;
 				if (onError) {
-					await onError();
+					const errorResponse =
+						result.type === 'failure' ? await onError(result.data) : await onError();
+					if (errorResponse && typeof errorResponse === 'object') {
+						if (errorResponse.resetForm !== undefined) {
+							formResetOptions.reset = errorResponse.resetForm;
+						}
+						if (errorResponse.invalidateAll !== undefined) {
+							formResetOptions.invalidateAll = errorResponse.invalidateAll;
+						}
+					}
 				}
 				toast.error(errorMessage, { id: loadingId });
 			} else {
@@ -59,7 +88,7 @@ export function createFormHandler<T>({
 				}
 				toast(redirectMessage, { id: loadingId });
 			}
-			await update({ reset: resetForm, invalidateAll });
+			await update({ ...formResetOptions });
 		};
 	};
 }

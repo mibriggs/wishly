@@ -19,6 +19,9 @@
 	import { ValidationStateClass } from './validation-state.svelte';
 	import ErrorMessage from '$lib/components/error-message.svelte';
 	import DetailsSkeleton from '$lib/components/details-skeleton.svelte';
+	import { createFormHandler } from '$lib/utils/form-handler';
+	import { wishlistItemSchema } from '$lib/schema';
+	import { z } from 'zod';
 
 	let { data }: PageProps = $props();
 
@@ -42,36 +45,35 @@
 	let pageState: PageState = $state<PageState>('loading');
 	const disabled = $derived(validationState.disabled || pageState !== 'idle');
 
-	const submitNewItem: SubmitFunction = ({ formData }) => {
-		pageState = 'creating';
-		const loadingId = toast.loading('Loading...');
-
-		if (wishlistData.wishlist) {
-			formData.append('wishlistId', wishlistData.wishlist.id);
-			formData.append('itemQuantity', `${itemState.quantity}`);
-		}
-
-		return async ({ update, result }) => {
-			if (result.type === 'failure') {
-				const errorDetails = result.data;
-				if (errorDetails) {
-					validationState.updateErrors(errorDetails);
-				}
-				toast.error('Could not create item', { id: loadingId });
-				await update({ reset: false, invalidateAll: false });
-			} else if (result.type === 'success') {
-				const newWishlistItem = result.data as { created: WishlistItem };
-				itemState.closeModal('NEW');
-				itemState.reset();
-				validationState.reset();
-				toast.success('New item created', { id: loadingId });
-
-				wishlistData.items.push(newWishlistItem.created);
-				await update({ invalidateAll: false });
+	const submitNewItem: SubmitFunction = createFormHandler<{ created: WishlistItem }>({
+		onStart: (formData) => {
+			pageState = 'creating';
+			if (wishlistData.wishlist) {
+				formData.append('wishlistId', wishlistData.wishlist.id);
+				formData.append('itemQuantity', `${itemState.quantity}`);
+			}
+		},
+		onSuccess: async (data) => {
+			itemState.closeModal('NEW');
+			itemState.reset();
+			validationState.reset();
+			wishlistData.items.push(data.created);
+			pageState = 'idle';
+		},
+		onError: (errorData) => {
+			if (errorData) {
+				validationState.updateErrors(errorData);
 			}
 			pageState = 'idle';
-		};
-	};
+			return { resetForm: false, invalidateAll: false };
+		},
+		successSchema: z.object({ created: wishlistItemSchema }),
+		loadingMessage: 'Loading...',
+		successMessage: 'New item created',
+		errorMessage: 'Could not create item',
+		invalidateAll: false,
+		resetForm: false
+	});
 
 	const submitEditItem: SubmitFunction = ({ formData }) => {
 		pageState = 'updating';
@@ -117,33 +119,33 @@
 		}
 	};
 
-	const submitDeleteWishlistItem: SubmitFunction = ({ formData }) => {
-		pageState = 'deleting';
-		const loadingId = toast.loading('Deleting...');
-
-		if (itemState.itemToDelete) {
-			formData.append('itemId', itemState.itemToDelete.id);
-		}
-
-		if (wishlistData.wishlist) {
-			formData.append('wishlistId', wishlistData.wishlist.id);
-		}
-
-		return async ({ update, result }) => {
-			if (result.type === 'error' || result.type === 'failure') {
-				toast.error('An error ocurred', { id: loadingId });
-			} else if (result.type === 'success') {
-				const deletedItem = result.data as { deleted: WishlistItem };
-				wishlistData.items
-					.filter((item) => item.id === deletedItem.deleted.id)
-					.forEach((item) => (item.isDeleted = true));
-				toast.success('Item deleted', { id: loadingId });
+	const submitDeleteWishlistItem: SubmitFunction = createFormHandler<{ deleted: WishlistItem }>({
+		onStart: (formData) => {
+			pageState = 'deleting';
+			if (itemState.itemToDelete) {
+				formData.append('itemId', itemState.itemToDelete.id);
 			}
+
+			if (wishlistData.wishlist) {
+				formData.append('wishlistId', wishlistData.wishlist.id);
+			}
+		},
+		onSuccess: (data) => {
+			wishlistData.items
+				.filter((item) => item.id === data.deleted.id)
+				.forEach((item) => (item.isDeleted = true));
 			itemState.closeModal('DELETE');
-			await update({ reset: true, invalidateAll: false });
 			pageState = 'idle';
-		};
-	};
+		},
+		onError: () => {
+			itemState.closeModal('DELETE');
+			pageState = 'idle';
+		},
+		successSchema: z.object({ deleted: wishlistItemSchema }),
+		successMessage: 'Item Deleted',
+		loadingMessage: 'Deleting...',
+		invalidateAll: false
+	});
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
 		const renamingId = toast.loading('Renaming...');

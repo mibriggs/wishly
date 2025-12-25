@@ -43,6 +43,27 @@
 			"when": 1762972526634,
 			"tag": "0005_outgoing_la_nuit",
 			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1766603516329,
+			"tag": "0006_spooky_aqueduct",
+			"breakpoints": true
+		},
+		{
+			"idx": 7,
+			"version": "7",
+			"when": 1766605597017,
+			"tag": "0007_custom_expires_at",
+			"breakpoints": true
+		},
+		{
+			"idx": 8,
+			"version": "7",
+			"when": 1766606723735,
+			"tag": "0008_organic_the_spike",
+			"breakpoints": true
 		}
 	]
 }

@@ -3,6 +3,7 @@ import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import type { Actions, PageServerLoad } from './$types';
 import { SharedWishlistService } from '$lib/server/db/services/shared.service';
 import { uuidToShortId } from '$lib/server';
+import type { ShareDuration } from '$lib';
 
 export const load: PageServerLoad = ({ locals }) => {
 	// check if there's a user
@@ -73,6 +74,7 @@ export const actions = {
 	shareWishlist: async ({ request }) => {
 		const formData = await request.formData();
 		const wishlistId = formData.get('wishlistId');
+		const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
 
 		if (!wishlistId) {
 			return fail(400, { message: 'Failed to share wishlist' });
@@ -81,16 +83,20 @@ export const actions = {
 		if (typeof wishlistId !== 'string') return error(400);
 
 		try {
-			// TODO: Maybe make configurable how long it is shared for?
-			const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
 			const now = new Date();
 			let newShareLink: string | null = null;
+			let durationType: ShareDuration = 'THIRTY_DAYS';
 
 			const shareLink = await SharedWishlistService.findByWishlistId(wishlistId);
-			if (shareLink && now.getTime() - shareLink.updatedAt.getTime() > THIRTY_DAYS) {
+
+			if (shareLink && shareLink.expiresAt && shareLink.expiresAt < now) {
 				const deletedLink = await SharedWishlistService.deleteShared(shareLink.id);
 				if (deletedLink) {
-					const newLink = await SharedWishlistService.createSharedLink(wishlistId);
+					const newLink = await SharedWishlistService.createSharedLink(
+						wishlistId,
+						new Date(now.getTime() + THIRTY_DAYS),
+						'THIRTY_DAYS'
+					);
 					if (newLink) {
 						newShareLink = newLink.id;
 					} else {
@@ -99,11 +105,15 @@ export const actions = {
 				} else {
 					newShareLink = null;
 				}
-			} else if (shareLink && now.getTime() - shareLink.updatedAt.getTime() <= THIRTY_DAYS) {
-				await SharedWishlistService.updateShared(shareLink.id);
+			} else if (shareLink) {
 				newShareLink = shareLink.id;
+				durationType = shareLink.durationType;
 			} else {
-				const newLink = await SharedWishlistService.createSharedLink(wishlistId);
+				const newLink = await SharedWishlistService.createSharedLink(
+					wishlistId,
+					new Date(now.getTime() + THIRTY_DAYS),
+					'THIRTY_DAYS'
+				);
 				if (newLink) {
 					newShareLink = newLink.id;
 				} else {
@@ -112,7 +122,11 @@ export const actions = {
 			}
 
 			if (newShareLink) {
-				return { link: uuidToShortId(newShareLink) };
+				return {
+					link: uuidToShortId(newShareLink),
+					currentDuration: durationType,
+					shareId: newShareLink
+				};
 			}
 			return error(400);
 		} catch (e) {

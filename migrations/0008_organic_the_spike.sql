@@ -1,0 +1,1 @@
+CREATE INDEX "expires_at_index" ON "shared_wishlists" USING btree ("expires_at");

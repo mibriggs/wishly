@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { uuidToShortId } from '$lib';
-	import { wishlistSchema } from '$lib/schema';
+	import { uuidToShortId, type ShareDuration } from '$lib';
+	import { durationSchema, wishlistSchema } from '$lib/schema';
+	import { z } from 'zod';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import Lock from 'lucide-svelte/icons/lock';
@@ -15,9 +16,15 @@
 		wishlist: Wishlist;
 		loadedWishlists: Wishlist[];
 		onDeleteClicked: () => void;
-		onShareClicked: (link: string) => void;
+		onShareClicked: (link: string, duration: ShareDuration, shareId: string | null) => void;
 		onLock: (id: string, isLocked: boolean, updatedAt: Date) => void;
 	}
+
+	const sharedWishlistData = z.object({
+		link: z.string(),
+		shareId: z.string().nullable(),
+		currentDuration: durationSchema
+	});
 
 	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked, onLock }: Props = $props();
 	let locking: boolean = $state(false);
@@ -51,13 +58,12 @@
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
-				const data = result.data;
-
-				if (data) {
-					const link = data['link'];
-					if (typeof link === 'string') {
-						onShareClicked(`${page.url.href}share/${link}`);
-					}
+				const maybeData = sharedWishlistData.safeParse(result.data);
+				if (maybeData.success) {
+					const link = maybeData.data.link;
+					const duration = maybeData.data.currentDuration;
+					const shareId = maybeData.data.shareId;
+					onShareClicked(`${page.url.href}share/${link}`, duration, shareId);
 				}
 			}
 			sharing = false;

@@ -65,3 +65,20 @@ export function unlockScroll(document: Document, window: Window): void {
 	document.body.style.paddingRight = '';
 	window.scrollTo(0, parseInt(scrollY || '0') * -1);
 }
+
+export const shareDurationOptions = {
+	ONE_HOUR: '1 hour',
+	ONE_DAY: '1 day',
+	SEVEN_DAYS: '7 days',
+	FOURTEEN_DAYS: '14 days',
+	THIRTY_DAYS: '30 days',
+	NINETY_DAYS: '90 days',
+	NEVER: 'Never'
+} as const;
+
+export type ShareDuration = keyof typeof shareDurationOptions;
+
+export const shareDurationEntries = Object.entries(shareDurationOptions) as [
+	ShareDuration,
+	(typeof shareDurationOptions)[ShareDuration]
+][];

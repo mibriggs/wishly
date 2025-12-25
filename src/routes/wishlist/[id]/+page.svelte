@@ -177,6 +177,29 @@
 		};
 	};
 
+	// const submitNameChangeV2: SubmitFunction = createFormHandler<void>({
+	// 	onStart: (formData) => {
+	// 		pageState = 'renaming';
+	// 		if (wishlistData.wishlist) {
+	// 			formData.append('newName', itemState.newName);
+	// 			formData.append('oldName', wishlistData.wishlist.name);
+	// 			formData.append('wishlistId', wishlistData.wishlist.id);
+	// 		}
+	// 		itemState.isNameEditable = false;
+	// 	},
+	// 	onSuccess: () => {
+	// 		pageState = 'idle';
+	// 	},
+	// 	onError: () => {
+	// 		if (itemState.wishlistNameElement && wishlistData.wishlist) {
+	// 			itemState.wishlistNameElement.innerText = wishlistData.wishlist.name;
+	// 		}
+	// 	},
+	// 	successSchema: z.void(),
+	// 	successMessage: 'Renamed!',
+	// 	loadingMessage: 'Renaming...'
+	// });
+
 	const handleItemDelete = (selectedItem: WishlistItem) => {
 		itemState.itemToDelete = selectedItem;
 		itemState.isDeleteItemModalOpen = true;

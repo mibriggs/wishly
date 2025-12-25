@@ -1,16 +1,26 @@
-import { isNull, type InferSelectModel } from 'drizzle-orm';
+import { type InferSelectModel } from 'drizzle-orm';
 import {
 	boolean,
 	decimal,
 	index,
 	integer,
+	pgEnum,
 	pgTable,
 	timestamp,
-	uniqueIndex,
 	uuid,
 	varchar
 } from 'drizzle-orm/pg-core';
 import { u8bytea } from './custom-types';
+
+export const durationTypeEnum = pgEnum('share_duration', [
+	'ONE_HOUR',
+	'ONE_DAY',
+	'SEVEN_DAYS',
+	'FOURTEEN_DAYS',
+	'THIRTY_DAYS',
+	'NINETY_DAYS',
+	'NEVER'
+]);
 
 export const userTable = pgTable(
 	'users',
@@ -109,13 +119,14 @@ export const sharedWishlistTable = pgTable(
 		wishlistId: uuid('wishlist_id')
 			.references(() => wishlistTable.id)
 			.notNull(),
-		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
+		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+		expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 }),
+		durationType: durationTypeEnum('duration_type').notNull().default('THIRTY_DAYS')
 	},
 	(table) => [
-		uniqueIndex('one_null_date_per_fk').on(table.deletedAt).where(isNull(table.deletedAt)),
-		index('shared_to_wishlist_id_index').on(table.wishlistId)
+		index('shared_to_wishlist_id_index').on(table.wishlistId),
+		index('expires_at_index').on(table.expiresAt)
 	]
 );
 

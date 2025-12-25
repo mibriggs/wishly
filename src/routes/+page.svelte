@@ -16,21 +16,14 @@
 	import { createFormHandler } from '$lib/utils/form-handler';
 	import { z } from 'zod';
 	import { wishlistSchema } from '$lib/schema';
+	import { shareDurationEntries, type ShareDuration } from '$lib';
 
-	const shareDurationOptions = [
-		'1 hour',
-		'1 day',
-		'7 days',
-		'14 days',
-		'30 days',
-		'90 days'
-	] as const;
 	type ShareData = {
 		title: string;
 		text: string;
 		url: string;
 	};
-	type ShareDuration = (typeof shareDurationOptions)[number];
+
 	type PageState = 'idle' | 'creating' | 'deleting' | 'loading';
 
 	class StreamedWishlist {
@@ -56,8 +49,9 @@
 
 	let clickedWishlist: string = $state('');
 	let shareLink: string = $state('');
+	let lastSharedId: string = $state('');
 
-	let shareDuration: ShareDuration = $state<ShareDuration>('30 days');
+	let shareDuration: ShareDuration = $state<ShareDuration>('THIRTY_DAYS');
 	let pageState: PageState = $state('loading');
 	let hasGuestCreatedList: boolean = $derived(
 		data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1
@@ -111,9 +105,13 @@
 		clickedWishlist = clickedId;
 	};
 
-	const openCopyModal = (link: string) => {
+	const openCopyModal = (link: string, duration: ShareDuration, shareId: string | null) => {
+		shareDuration = duration;
 		isCopyModalOpen = true;
 		shareLink = link;
+		if (shareId !== null) {
+			lastSharedId = shareId;
+		}
 	};
 
 	const doShareLink = async () => {
@@ -129,6 +127,7 @@
 			}
 			await shareLinkToGuest(shareData);
 			copyWishlistModal.close();
+			updateShareDuration();
 		} catch (err: any) {
 			if (err?.name === 'AbortError') {
 				toast.error('Share cancelled');
@@ -169,6 +168,7 @@
 		const isCopied = await copyText(shareLink);
 		if (isCopied) {
 			toast.success('Link copied to clipboard!');
+			updateShareDuration();
 		} else {
 			toast.error('Failed to copy to clipboard, try again');
 		}
@@ -181,6 +181,19 @@
 				wishlist.isLocked = isLocked;
 				wishlist.updatedAt = updatedAt;
 			}
+		});
+	};
+
+	const updateShareDuration = async () => {
+		// Default to 30 days? If user picks something besides that update afterwards
+		await fetch(`/api/v1/wishlist/shared/${lastSharedId}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				newDuration: shareDuration
+			})
 		});
 	};
 </script>
@@ -344,8 +357,8 @@
 				bind:this={dropdownElement}
 				bind:value={shareDuration}
 			>
-				{#each shareDurationOptions as duration}
-					<option>{duration}</option>
+				{#each shareDurationEntries as [value, duration]}
+					<option {value}>{duration}</option>
 				{/each}
 			</select>
 		</div>

@@ -269,16 +269,18 @@
 		</span>
 		<span class="ml-auto flex items-center gap-4">
 			<button
-				class="transform rounded-md p-3 transition duration-150 hover:bg-amber-500/20 active:scale-90"
+				class="transform rounded-md p-3 transition duration-150 hover:bg-amber-500/20 active:scale-90 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 disabled:active:scale-100"
+				disabled={wishlistData.wishlist?.isLocked}
 				onclick={() => handleItemEdit(wishlistItem)}
 			>
-				<SquarePen color="#F59E0B" />
+				<SquarePen color={wishlistData.wishlist?.isLocked ? '#737373' : '#F59E0B'} />
 			</button>
 			<button
-				class="transform rounded-md p-3 transition duration-150 hover:bg-red-500/20 active:scale-90"
+				class="transform rounded-md p-3 transition duration-150 hover:bg-red-500/20 active:scale-90 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 disabled:active:scale-100"
+				disabled={wishlistData.wishlist?.isLocked}
 				onclick={() => handleItemDelete(wishlistItem)}
 			>
-				<Trash2 color="#EF4444" />
+				<Trash2 color={wishlistData.wishlist?.isLocked ? '#737373' : '#EF4444'} />
 			</button>
 		</span>
 	</div>
@@ -301,16 +303,18 @@
 
 		<span class="flex gap-2 self-end">
 			<button
-				class="transform rounded-md p-2 transition duration-150 hover:bg-amber-500/20 active:scale-90"
+				class="transform rounded-md p-2 transition duration-150 hover:bg-amber-500/20 active:scale-90 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 disabled:active:scale-100"
+				disabled={wishlistData.wishlist?.isLocked}
 				onclick={() => handleItemEdit(wishlistItem)}
 			>
-				<SquarePen color="#F59E0B" size="20" />
+				<SquarePen color={wishlistData.wishlist?.isLocked ? '#737373' : '#F59E0B'} size="20" />
 			</button>
 			<button
-				class="transform rounded-md p-2 transition duration-150 hover:bg-red-500/20 active:scale-90"
+				class="transform rounded-md p-2 transition duration-150 hover:bg-red-500/20 active:scale-90 disabled:cursor-not-allowed disabled:hover:bg-neutral-300 disabled:active:scale-100"
+				disabled={wishlistData.wishlist?.isLocked}
 				onclick={() => handleItemDelete(wishlistItem)}
 			>
-				<Trash2 color="#EF4444" size="20" />
+				<Trash2 color={wishlistData.wishlist?.isLocked ? '#737373' : '#EF4444'} size="20" />
 			</button>
 		</span>
 	</div>
@@ -335,9 +339,9 @@
 				</h1>
 				{#if !itemState.isNameEditable}
 					<button
-						class="transform p-2 transition duration-150 active:scale-90"
+						class="transform p-2 transition duration-150 active:scale-90 disabled:cursor-not-allowed disabled:text-neutral-500 disabled:active:scale-100"
 						onclick={handleEditName}
-						disabled={pageState === 'renaming'}
+						disabled={pageState === 'renaming' || wishlistData.wishlist?.isLocked}
 					>
 						<SquarePen />
 					</button>
@@ -383,7 +387,8 @@
 
 			<button
 				aria-label="open new item modal"
-				class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-6 py-1 text-neutral-100 transition duration-150 active:scale-90"
+				class="mt-4 flex transform select-none items-center justify-center gap-1 rounded-md bg-black px-6 py-1 text-neutral-100 transition duration-150 active:scale-90 disabled:cursor-not-allowed disabled:border-neutral-400 disabled:bg-neutral-500 disabled:active:scale-100"
+				disabled={wishlistData.wishlist?.isLocked}
 				onclick={() => itemState.openAddModal()}
 			>
 				<Plus size={16} />

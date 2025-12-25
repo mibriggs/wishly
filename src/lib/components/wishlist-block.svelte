@@ -117,9 +117,10 @@
 		</form>
 
 		<button
-			class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85"
+			class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-400 disabled:active:scale-100 disabled:active:opacity-100"
 			type="button"
 			onclick={onDeleteClicked}
+			disabled={wishlist.isLocked}
 		>
 			<Trash2 size="20" />
 		</button>

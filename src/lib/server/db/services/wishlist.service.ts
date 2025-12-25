@@ -1,6 +1,6 @@
 import { db } from '..';
 import { sharedWishlistTable, wishlistItemTable, wishlistTable, type Wishlist } from '../schema';
-import { and, desc, eq, inArray, isNull, not, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNull, not, or, sql } from 'drizzle-orm';
 import { UserService } from './user.service';
 import { getSingleObjectOrNull } from '$lib';
 
@@ -91,8 +91,7 @@ export class WishlistService {
 				);
 
 			await transaction
-				.update(sharedWishlistTable)
-				.set({ deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
+				.delete(sharedWishlistTable)
 				.where(eq(sharedWishlistTable.wishlistId, wishlistId));
 
 			const wishlists: Wishlist[] = await transaction
@@ -140,7 +139,7 @@ export class WishlistService {
 					eq(sharedWishlistTable.id, sharedId),
 					not(wishlistTable.isDeleted),
 					not(wishlistItemTable.isDeleted),
-					isNull(sharedWishlistTable.deletedAt)
+					or(gt(sharedWishlistTable.expiresAt, sql`NOW()`), isNull(sharedWishlistTable.expiresAt))
 				)
 			);
 		return wishilists;

@@ -1,5 +1,4 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
-import { WishlistService } from './wishlist.service';
 import { db } from '..';
 import { wishlistItemTable, type WishlistItem, wishlistTable } from '../schema';
 import { getSingleObjectOrNull } from '$lib';

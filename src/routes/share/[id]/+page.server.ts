@@ -19,8 +19,9 @@ export const load: PageServerLoad = async ({ params }) => {
 	if (!shareLink) return { empty: true };
 
 	const wishlist: Wishlist = allData[0].wishlists;
+	if (!wishlist) return { empty: true };
 
-	if (shareLink.expiresAt !== null && shareLink.expiresAt < new Date()) {
+	if (shareLink.expiresAt && shareLink.expiresAt < new Date()) {
 		await SharedWishlistService.deleteShared(shareLink.id);
 		return { expired: true };
 	}

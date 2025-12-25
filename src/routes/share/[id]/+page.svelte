@@ -56,8 +56,8 @@
 				</div>
 
 				<div class="text-center">
-					<h2 class="text-lg font-semibold text-slate-800">No results found</h2>
-					<p class="mt-1 text-slate-500">This list has no items.</p>
+					<h2 class="text-lg font-semibold text-slate-800">Share link not found</h2>
+					<p class="mt-1 text-slate-500">This link is invalid or no longer available.</p>
 				</div>
 			</section>
 		</div>

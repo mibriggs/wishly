@@ -1,6 +1,6 @@
 import { db } from '..';
 import { sharedWishlistTable, wishlistItemTable, wishlistTable, type Wishlist } from '../schema';
-import { and, desc, eq, gt, inArray, isNull, not, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, not, sql } from 'drizzle-orm';
 import { UserService } from './user.service';
 import { getSingleObjectOrNull } from '$lib';
 
@@ -132,16 +132,12 @@ export class WishlistService {
 		const wishilists = await db
 			.select()
 			.from(wishlistTable)
-			.innerJoin(wishlistItemTable, eq(wishlistItemTable.wishlistId, wishlistTable.id))
+			.leftJoin(
+				wishlistItemTable,
+				and(eq(wishlistItemTable.wishlistId, wishlistTable.id), not(wishlistItemTable.isDeleted))
+			)
 			.innerJoin(sharedWishlistTable, eq(sharedWishlistTable.wishlistId, wishlistTable.id))
-			.where(
-				and(
-					eq(sharedWishlistTable.id, sharedId),
-					not(wishlistTable.isDeleted),
-					not(wishlistItemTable.isDeleted),
-					or(gt(sharedWishlistTable.expiresAt, sql`NOW()`), isNull(sharedWishlistTable.expiresAt))
-				)
-			);
+			.where(and(eq(sharedWishlistTable.id, sharedId), not(wishlistTable.isDeleted)));
 		return wishilists;
 	}
 }

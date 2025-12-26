@@ -128,8 +128,8 @@
 			await shareLinkToGuest(shareData);
 			copyWishlistModal.close();
 			updateShareDuration();
-		} catch (err: any) {
-			if (err?.name === 'AbortError') {
+		} catch (err: unknown) {
+			if (err instanceof Error && err.name === 'AbortError') {
 				toast.error('Share cancelled');
 				copyWishlistModal.close();
 				return;

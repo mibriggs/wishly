@@ -24,7 +24,8 @@ export const actions = {
 			const newWishlist = await WishlistService.createWishlist(locals.user.id);
 			if (newWishlist) return { wishlist: newWishlist };
 			return fail(400);
-		} catch (e) {
+		} catch (e: unknown) {
+			console.error('Error in form action:', e);
 			return error(400);
 		}
 	},
@@ -129,7 +130,8 @@ export const actions = {
 				};
 			}
 			return error(400);
-		} catch (e) {
+		} catch (e: unknown) {
+			console.error('Error in form action:', e);
 			return error(400);
 		}
 	}

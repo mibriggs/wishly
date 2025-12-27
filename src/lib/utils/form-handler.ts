@@ -81,7 +81,19 @@ export function createFormHandler<T>({
 						}
 					}
 				}
-				toast.error(errorMessage, { id: loadingId });
+
+				// Check for errorCause in failure data and show specific message if available
+				if (
+					result.type === 'failure' &&
+					result.data &&
+					typeof result.data === 'object' &&
+					'errorCause' in result.data &&
+					typeof result.data.errorCause === 'string'
+				) {
+					toast.error(result.data.errorCause, { id: loadingId });
+				} else {
+					toast.error(errorMessage, { id: loadingId });
+				}
 			} else {
 				if (onNavigate) {
 					await onNavigate();

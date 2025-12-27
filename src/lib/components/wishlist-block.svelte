@@ -33,7 +33,6 @@
 	const submitLockWishlist: SubmitFunction = ({ formData }) => {
 		locking = true;
 		formData.append('wishlistId', wishlist.id);
-		formData.append('isLocked', `${wishlist.isLocked}`);
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {

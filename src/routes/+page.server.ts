@@ -54,13 +54,11 @@ export const actions = {
 	lockWishlist: async ({ request, locals }) => {
 		const formData = await request.formData();
 		const wishlistId = formData.get('wishlistId');
-		const isLocked = formData.get('isLocked');
 
-		if (wishlistId && wishlistId.toString().trim().length > 0 && isLocked !== null) {
+		if (wishlistId && wishlistId.toString().trim().length > 0) {
 			const lockedWishlist = await WishlistService.updateWishlistLock(
 				wishlistId.toString(),
-				locals.user.id,
-				isLocked === 'true'
+				locals.user.id
 			);
 			if (!lockedWishlist) {
 				return fail(400, { message: 'Failed to update wishlist' });

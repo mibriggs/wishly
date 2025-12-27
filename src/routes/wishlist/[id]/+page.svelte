@@ -91,7 +91,12 @@
 				if (errorDetails) {
 					validationState.updateErrors(errorDetails);
 				}
-				toast.error('Could not update item', { id: loadingId });
+				const errorMessage =
+					errorDetails && 'errorCause' in errorDetails
+						? (errorDetails.errorCause as string)
+						: 'Could not update item';
+
+				toast.error(errorMessage, { id: loadingId });
 				await update({ reset: false, invalidateAll: false });
 			} else if (result.type === 'success') {
 				const updatedItem = result.data as { updated: WishlistItem };

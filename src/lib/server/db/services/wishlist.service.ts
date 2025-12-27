@@ -104,10 +104,10 @@ export class WishlistService {
 		});
 	}
 
-	static async updateWishlistLock(wishlistId: string, userId: string, oldLockState: boolean) {
+	static async updateWishlistLock(wishlistId: string, userId: string) {
 		const wishlists: Wishlist[] = await db
 			.update(wishlistTable)
-			.set({ isLocked: !oldLockState, updatedAt: sql`NOW()` })
+			.set({ isLocked: sql`NOT ${wishlistTable.isLocked}`, updatedAt: sql`NOW()` })
 			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 			.returning();
 

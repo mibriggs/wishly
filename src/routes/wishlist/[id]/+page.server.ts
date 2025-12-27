@@ -56,17 +56,23 @@ export const actions = {
 				item.wishlistId,
 				locals.user.id
 			);
-			let newItem: WishlistItem | null = null;
 
-			if (wishlistToUpdate) {
-				newItem = await WishlistItemsService.createNewItem(
-					item.itemName,
-					item.itemUrl,
-					item.itemQuantity,
-					item.itemCost.toString(),
-					item.wishlistId
-				);
+			if (!wishlistToUpdate) {
+				return fail(400, { errorCause: 'Wishlist not found', success: false });
 			}
+
+			if (wishlistToUpdate.isLocked) {
+				return fail(403, { errorCause: 'This wishlist is locked and cannot be modified' });
+			}
+
+			let newItem: WishlistItem | null = null;
+			newItem = await WishlistItemsService.createNewItem(
+				item.itemName,
+				item.itemUrl,
+				item.itemQuantity,
+				item.itemCost.toString(),
+				item.wishlistId
+			);
 
 			if (!newItem) {
 				return fail(400, { errorCause: 'Failed to create item', success: false });
@@ -90,6 +96,10 @@ export const actions = {
 
 			if (!wishlistToUpdate) {
 				return fail(400, { errorCause: 'Wishlist not found', success: false });
+			}
+
+			if (wishlistToUpdate.isLocked) {
+				return fail(403, { errorCause: 'This wishlist is locked and cannot be modified' });
 			}
 
 			const updatedItems = await WishlistItemsService.updateItem(

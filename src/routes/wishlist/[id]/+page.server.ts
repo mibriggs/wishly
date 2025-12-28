@@ -5,6 +5,10 @@ import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { deleteItemSchema, newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
 import { shortIdToUuid } from '$lib';
+import { WishlistNotFoundError } from '$lib/server/errors/wishlist-not-found';
+import { WishlistLockedError } from '$lib/server/errors/locked-error';
+import { WishlistItemNotCreatedError } from '$lib/server/errors/item-not-created';
+import { WishlistItemNotFoundError } from '$lib/server/errors/item-not-found';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -45,39 +49,34 @@ const loadWishlistItems = async (
 	}
 };
 
+// TODO: Should check if user owns this wishlist
 export const actions = {
-	createWishlistItem: async ({ request, locals }) => {
+	createWishlistItem: async ({ request }) => {
 		const formData = await request.formData();
 		const maybeItem = newItemSchema.safeParse(Object.fromEntries(formData.entries()));
 
 		if (maybeItem.success) {
 			const item = maybeItem.data;
-			const wishlistToUpdate = await WishlistService.findByWishlistAndUserId(
-				item.wishlistId,
-				locals.user.id
-			);
 
-			if (!wishlistToUpdate) {
-				return fail(400, { errorCause: 'Wishlist not found', success: false });
+			try {
+				const newItem = await WishlistItemsService.createNewItem(
+					item.itemName,
+					item.itemUrl,
+					item.itemQuantity,
+					item.itemCost.toString(),
+					item.wishlistId
+				);
+				return { created: newItem };
+			} catch (e: unknown) {
+				if (e instanceof WishlistNotFoundError) {
+					return fail(404, { errorCause: e.message });
+				} else if (e instanceof WishlistLockedError) {
+					return fail(423, { errorCause: e.message });
+				} else if (e instanceof WishlistItemNotCreatedError) {
+					return fail(422, { errorCause: e.message });
+				}
+				return error(500);
 			}
-
-			if (wishlistToUpdate.isLocked) {
-				return fail(403, { errorCause: 'This wishlist is locked and cannot be modified' });
-			}
-
-			let newItem: WishlistItem | null = null;
-			newItem = await WishlistItemsService.createNewItem(
-				item.itemName,
-				item.itemUrl,
-				item.itemQuantity,
-				item.itemCost.toString(),
-				item.wishlistId
-			);
-
-			if (!newItem) {
-				return fail(400, { errorCause: 'Failed to create item', success: false });
-			}
-			return { created: newItem };
 		} else {
 			return fail(400, maybeItem.error.flatten().fieldErrors);
 		}
@@ -89,34 +88,27 @@ export const actions = {
 
 		if (maybeItem.success) {
 			const item = maybeItem.data;
-			const wishlistToUpdate = await WishlistService.findByWishlistAndUserId(
-				item.wishlistId,
-				locals.user.id
-			);
 
-			if (!wishlistToUpdate) {
-				return fail(400, { errorCause: 'Wishlist not found', success: false });
+			try {
+				return {
+					updated: await WishlistItemsService.updateItem(
+						item.itemId,
+						item.wishlistId,
+						locals.user.id,
+						item.itemName,
+						item.itemUrl,
+						item.itemQuantity,
+						item.itemCost.toString()
+					)
+				};
+			} catch (e: unknown) {
+				if (e instanceof WishlistNotFoundError || e instanceof WishlistItemNotFoundError) {
+					return fail(404, { errorCause: e.message });
+				} else if (e instanceof WishlistLockedError) {
+					return fail(423, { errorCause: e.message });
+				}
+				return error(500);
 			}
-
-			if (wishlistToUpdate.isLocked) {
-				return fail(403, { errorCause: 'This wishlist is locked and cannot be modified' });
-			}
-
-			const updatedItems = await WishlistItemsService.updateItem(
-				item.itemId,
-				item.wishlistId,
-				locals.user.id,
-				item.itemName,
-				item.itemUrl,
-				item.itemQuantity,
-				item.itemCost.toString()
-			);
-
-			if (updatedItems.length === 0) {
-				return fail(400, { errorCause: 'Failed to update item', success: false });
-			}
-
-			return { updated: updatedItems[0] };
 		} else {
 			return fail(400, maybeItem.error.flatten().fieldErrors);
 		}
@@ -127,15 +119,23 @@ export const actions = {
 		const maybeItem = deleteItemSchema.safeParse(Object.fromEntries(formData.entries()));
 		if (maybeItem.success) {
 			const item = maybeItem.data;
-			const deletedItem = await WishlistItemsService.deleteItem(
-				item.itemId,
-				item.wishlistId,
-				locals.user.id
-			);
-			if (deletedItem.length === 0) {
-				return fail(400, { errorCause: 'Failed to delete item', success: false });
+
+			try {
+				return {
+					deleted: await WishlistItemsService.deleteItem(
+						item.itemId,
+						item.wishlistId,
+						locals.user.id
+					)
+				};
+			} catch (e: unknown) {
+				if (e instanceof WishlistNotFoundError || e instanceof WishlistItemNotFoundError) {
+					return fail(404, { errorCause: e.message });
+				} else if (e instanceof WishlistLockedError) {
+					return fail(423, { errorCause: e.message });
+				}
+				return error(500);
 			}
-			return { deleted: deletedItem[0] };
 		} else {
 			console.error(maybeItem.error.flatten().fieldErrors);
 			return fail(400, maybeItem.error.flatten().fieldErrors);
@@ -153,13 +153,19 @@ export const actions = {
 				return fail(400, { errorCause: 'Must be new non-empty name', success: false });
 			}
 
-			const updatedWishlist = await WishlistService.updateWishlistName(
-				wishlistId.toString(),
-				locals.user.id,
-				newName.toString()
-			);
-			if (!updatedWishlist) {
-				return fail(400, { errorCause: 'Failed to update name', success: false });
+			try {
+				await WishlistService.updateWishlistName(
+					wishlistId.toString(),
+					locals.user.id,
+					newName.toString()
+				);
+			} catch (e: unknown) {
+				if (e instanceof WishlistNotFoundError) {
+					return fail(404, { errorCause: e.message });
+				} else if (e instanceof WishlistLockedError) {
+					return fail(423, { errorCause: e.message });
+				}
+				return error(500);
 			}
 		} else {
 			return fail(400, { errorCause: 'Failed to update name', success: false });

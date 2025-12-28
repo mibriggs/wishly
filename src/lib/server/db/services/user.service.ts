@@ -1,4 +1,5 @@
 import { getSingleObjectOrNull } from '$lib';
+import { UserNotFoundError } from '$lib/server/errors/user-not-found';
 import { db } from '..';
 import { userTable, type User } from '../schema';
 import { eq } from 'drizzle-orm';
@@ -26,10 +27,21 @@ export class UserService {
 		return guestUser;
 	}
 
+	/**
+	 * Finds a user by their user ID.
+	 *
+	 * @param userId - The ID of the user to find
+	 * @returns The user object
+	 * @throws {UserNotFoundError} If the user is not found
+	 */
 	static async findById(userId: string) {
 		const users: User[] = await db.select().from(userTable).where(eq(userTable.id, userId));
 
-		return getSingleObjectOrNull<User>(users);
+		if (users.length === 0) {
+			throw new UserNotFoundError(userId);
+		}
+
+		return users[0];
 	}
 
 	static async findByOauthId(oauthId: string | number, authProvider: OAuthProvider) {

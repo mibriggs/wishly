@@ -3,12 +3,18 @@ import { sharedWishlistTable, wishlistItemTable, wishlistTable, type Wishlist } 
 import { and, desc, eq, inArray, not, sql } from 'drizzle-orm';
 import { UserService } from './user.service';
 import { ensureWishlistUnlocked } from '$lib/server';
-import { WishlistNotFoundError } from '$lib/server/errors/wishlist-not-found';
-import { WishlistNotCreatedError } from '$lib/server/errors/wishlist-not-created';
+import { WishlistNotFoundError } from '$lib/server/errors/wishlist/wishlist-not-found';
+import { WishlistNotCreatedError } from '$lib/server/errors/wishlist/wishlist-not-created';
 
 export class WishlistService {
 	constructor() {}
 
+	/**
+	 * Finds all non-deleted wishlists for a specific user.
+	 *
+	 * @param userId - The ID of the user whose wishlists to retrieve
+	 * @returns An array of wishlist objects owned by the user, ordered by most recently updated
+	 */
 	static async findByUserId(userId: string): Promise<Wishlist[]> {
 		return await db
 			.select()
@@ -47,6 +53,14 @@ export class WishlistService {
 		return wishlists[0];
 	}
 
+	/**
+	 * Finds a wishlist with all its non-deleted items.
+	 * Returns a joined result with wishlist and item data.
+	 *
+	 * @param wishlistId - The ID of the wishlist to retrieve
+	 * @param userId - The ID of the user who owns the wishlist
+	 * @returns An array of joined wishlist and item records (empty array if wishlist not found)
+	 */
 	static async findWithItems(wishlistId: string, userId: string) {
 		const query = await db
 			.select()
@@ -198,11 +212,11 @@ export class WishlistService {
 	}
 
 	/**
-	 * Retrieves a wishlist using its share link ID.
+	 * Retrieves a wishlist with its items using a share link ID.
+	 * Returns a joined result array - empty if the share link is invalid or wishlist is deleted.
 	 *
 	 * @param sharedId - The share link ID
-	 * @returns The wishlist with its items
-	 * @throws {WishlistNotFoundError} If the wishlist is not found or the share link is invalid
+	 * @returns An array of joined wishlist, items, and share link records (empty array if not found)
 	 */
 	static async getWithShareLink(sharedId: string) {
 		const wishlists = await db
@@ -215,11 +229,7 @@ export class WishlistService {
 			.innerJoin(sharedWishlistTable, eq(sharedWishlistTable.wishlistId, wishlistTable.id))
 			.where(and(eq(sharedWishlistTable.id, sharedId), not(wishlistTable.isDeleted)));
 
-		if (wishlists.length === 0) {
-			throw new WishlistNotFoundError(sharedId);
-		}
-
-		return wishlists[0];
+		return wishlists;
 	}
 
 	/**

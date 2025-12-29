@@ -35,7 +35,7 @@ export const PATCH: RequestHandler = async ({ request, params }) => {
 		const shareId: string = params.shareId;
 		const newDate = calculateExpiry(duration);
 
-		const updatedShared = SharedWishlistService.updateExpiration(shareId, newDate, duration);
+		const updatedShared = await SharedWishlistService.updateExpiration(shareId, newDate, duration);
 
 		if (updatedShared !== null) {
 			return json({ success: true }, { status: 200 });

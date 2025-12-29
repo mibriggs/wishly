@@ -1,5 +1,6 @@
 import { githubUserSchema, type GithubUser } from '$lib/schema';
 import { UserService } from '$lib/server/db/services/user.service';
+import { SessionNotCreatedError } from '$lib/server/errors/session/session-not-created';
 import { github } from '$lib/server/providers/github';
 import { INACTIVITY_TIMEOUT_SECONDS, SessionUtils } from '$lib/server/session/session';
 import type { Cookies, RequestHandler } from '@sveltejs/kit';
@@ -91,9 +92,18 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	}
 };
 
+/**
+ * Creates a new session for a user, sets the session cookie, and returns a redirect response.
+ *
+ * @param userId - The ID of the user to create a session for
+ * @param cookies - The SvelteKit cookies object to set the session token
+ * @returns A Response object with 302 redirect on success, 422 on session creation failure, or 500 on unexpected error
+ * @throws {SessionNotCreatedError} Caught internally and returns a 422 response
+ */
 async function createSessionOrThrow(userId: string, cookies: Cookies) {
-	const session = await SessionUtils.createSession(userId);
-	if (session) {
+	try {
+		const session = await SessionUtils.createSession(userId);
+
 		const headers: Headers = new Headers();
 		headers.append('Location', '/');
 
@@ -108,8 +118,14 @@ async function createSessionOrThrow(userId: string, cookies: Cookies) {
 			status: 302,
 			headers: headers
 		});
+	} catch (e: unknown) {
+		if (e instanceof SessionNotCreatedError) {
+			return new Response(null, {
+				status: 422
+			});
+		}
+		return new Response(null, {
+			status: 500
+		});
 	}
-	return new Response(null, {
-		status: 400
-	});
 }

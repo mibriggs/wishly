@@ -1,6 +1,7 @@
 import { constantTimeEqual, generateSecureRandomString, hashSecret } from '$lib';
 import type { Session } from '../db/schema';
 import { SessionService } from '../db/services/session.service';
+import { SessionNotFoundError } from '../errors/session/session-not-found';
 
 type SessionWithToken = Session & { token: string };
 
@@ -11,19 +12,32 @@ const DUMMY_HASH_32 = new Uint8Array(32);
 export class SessionUtils {
 	constructor() {}
 
-	static async createSession(userId: string): Promise<SessionWithToken | null> {
+	/**
+	 * Creates a new session for a user with a secure token.
+	 * Generates a session ID and secret, hashes the secret, and stores the session in the database.
+	 *
+	 * @param userId - The ID of the user to create a session for
+	 * @returns The created session with the unhashed token (format: "sessionId.secret")
+	 * @throws {SessionNotCreatedError} If the session creation fails in the database
+	 */
+	static async createSession(userId: string): Promise<SessionWithToken> {
 		const id: string = generateSecureRandomString();
 		const secret: string = generateSecureRandomString();
 		const hashedSecret: Uint8Array = await hashSecret(secret);
 
-		const session: Session | null = await SessionService.insertSession(id, userId, hashedSecret);
-
-		const sessionWithToken: SessionWithToken | null = session
-			? { ...session, token: `${id}.${secret}` }
-			: null;
+		const session: Session = await SessionService.insertSession(id, userId, hashedSecret);
+		const sessionWithToken: SessionWithToken = { ...session, token: `${id}.${secret}` };
 		return sessionWithToken;
 	}
 
+	/**
+	 * Validates a session token and returns the associated session if valid.
+	 * Uses constant-time comparison to prevent timing attacks.
+	 *
+	 * @param clientSessionToken - The session token from the client (format: "sessionId.secret")
+	 * @returns The valid session object, or null if the token is invalid, expired, or not found
+	 * @throws Re-throws any unexpected errors from the database layer
+	 */
 	static async validateSessionToken(clientSessionToken: string): Promise<Session | null> {
 		const tokenParts = clientSessionToken.split('.');
 
@@ -34,14 +48,28 @@ export class SessionUtils {
 		const sessionId = tokenParts[0];
 		const plainTextSessionSecret = tokenParts[1];
 
-		const session: Session | null = await SessionService.getSession(sessionId);
+		let session: Session | null = null;
+		let sessionExists = true;
+
+		try {
+			session = await SessionService.getSession(sessionId);
+		} catch (e: unknown) {
+			if (e instanceof SessionNotFoundError) {
+				sessionExists = false;
+			} else {
+				throw e;
+			}
+		}
 
 		const hashedClientSession: Uint8Array = await hashSecret(plainTextSessionSecret);
-		const hashedServerSession: Uint8Array = session?.secretHash ?? DUMMY_HASH_32;
+		const hashedServerSession: Uint8Array =
+			sessionExists && session ? session.secretHash : DUMMY_HASH_32;
 
 		const validSecret = constantTimeEqual(hashedClientSession, hashedServerSession);
 
-		if (!validSecret || session === null) return null;
+		// Always perform the comparison even if session doesn't exist
+		if (!sessionExists || !session) return null;
+		if (!validSecret) return null;
 		if (session.deletedAt !== null) return null;
 
 		const now = new Date();

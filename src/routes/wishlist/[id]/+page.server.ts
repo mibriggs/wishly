@@ -5,10 +5,10 @@ import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { deleteItemSchema, newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
 import { shortIdToUuid } from '$lib';
-import { WishlistNotFoundError } from '$lib/server/errors/wishlist-not-found';
-import { WishlistLockedError } from '$lib/server/errors/locked-error';
-import { WishlistItemNotCreatedError } from '$lib/server/errors/item-not-created';
-import { WishlistItemNotFoundError } from '$lib/server/errors/item-not-found';
+import { WishlistNotFoundError } from '$lib/server/errors/wishlist/wishlist-not-found';
+import { WishlistLockedError } from '$lib/server/errors/wishlist/locked-error';
+import { WishlistItemNotCreatedError } from '$lib/server/errors/item/item-not-created';
+import { WishlistItemNotFoundError } from '$lib/server/errors/item/item-not-found';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {

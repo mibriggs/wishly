@@ -4,10 +4,10 @@ import type { Actions, PageServerLoad } from './$types';
 import { SharedWishlistService } from '$lib/server/db/services/shared.service';
 import { uuidToShortId } from '$lib/server';
 import type { ShareDuration } from '$lib';
-import { WishlistNotFoundError } from '$lib/server/errors/wishlist-not-found';
-import { WishlistNotCreatedError } from '$lib/server/errors/wishlist-not-created';
-import { UserNotFoundError } from '$lib/server/errors/user-not-found';
-import { WishlistLockedError } from '$lib/server/errors/locked-error';
+import { WishlistNotFoundError } from '$lib/server/errors/wishlist/wishlist-not-found';
+import { WishlistNotCreatedError } from '$lib/server/errors/wishlist/wishlist-not-created';
+import { UserNotFoundError } from '$lib/server/errors/user/user-not-found';
+import { WishlistLockedError } from '$lib/server/errors/wishlist/locked-error';
 
 export const load: PageServerLoad = ({ locals }) => {
 	// check if there's a user

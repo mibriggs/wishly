@@ -1,5 +1,6 @@
 import { getSingleObjectOrNull } from '$lib';
-import { UserNotFoundError } from '$lib/server/errors/user-not-found';
+import { UserNotFoundError } from '$lib/server/errors/user/user-not-found';
+import { UserNotCreatedError } from '$lib/server/errors/user/user-not-created';
 import { db } from '..';
 import { userTable, type User } from '../schema';
 import { eq } from 'drizzle-orm';
@@ -8,23 +9,43 @@ type OAuthProvider = 'GOOGLE' | 'GITHUB' | 'DISCORD';
 export class UserService {
 	constructor() {}
 
-	static async createGuestUser(guestId: string) {
-		const user: User[] = await db
+	/**
+	 * Creates a new guest user with the specified guest ID.
+	 *
+	 * @param guestId - The unique identifier for the guest user
+	 * @returns The newly created guest user object
+	 * @throws {UserNotCreatedError} If the user creation fails
+	 */
+	static async createGuestUser(guestId: string): Promise<User> {
+		const users: User[] = await db
 			.insert(userTable)
 			.values({
 				guestId: guestId,
 				isGuest: true
 			})
 			.returning();
-		return user;
+
+		if (users.length === 0) {
+			throw new UserNotCreatedError();
+		}
+
+		return users[0];
 	}
 
-	static async findByGuestId(guestId: string) {
-		const guestUser: User[] = await db
-			.select()
-			.from(userTable)
-			.where(eq(userTable.guestId, guestId));
-		return guestUser;
+	/**
+	 * Finds a guest user by their guest ID.
+	 *
+	 * @param guestId - The unique guest identifier
+	 * @returns The guest user object
+	 * @throws {UserNotFoundError} If no user with the given guest ID is found
+	 */
+	static async findByGuestId(guestId: string): Promise<User> {
+		const res: User[] = await db.select().from(userTable).where(eq(userTable.guestId, guestId));
+
+		if (res.length === 0) {
+			throw new UserNotFoundError(guestId);
+		}
+		return res[0];
 	}
 
 	/**

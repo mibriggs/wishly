@@ -58,7 +58,6 @@
 	);
 
 	const submitDeleteWishlist: SubmitFunction = createFormHandler<{
-		success: boolean;
 		wishlist: Wishlist;
 	}>({
 		onStart: (formData) => {
@@ -66,11 +65,9 @@
 			pageState = 'deleting';
 		},
 		onSuccess: (data) => {
-			if (data.success) {
-				wishlistsData.nonDeletedWishlists
-					.filter((list) => list.id === data.wishlist.id)
-					.forEach((list) => (list.isDeleted = true));
-			}
+			wishlistsData.nonDeletedWishlists
+				.filter((list) => list.id === data.wishlist.id)
+				.forEach((list) => (list.isDeleted = true));
 			pageState = 'idle';
 			isDeleteModalOpen = false;
 		},
@@ -78,7 +75,7 @@
 			pageState = 'idle';
 			isDeleteModalOpen = false;
 		},
-		successSchema: z.object({ success: z.boolean(), wishlist: wishlistSchema }),
+		successSchema: z.object({ wishlist: wishlistSchema }),
 		loadingMessage: 'Deleting...',
 		successMessage: 'Wishlist deleted',
 		errorMessage: 'Failed to delete wishlist',

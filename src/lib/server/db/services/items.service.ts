@@ -1,7 +1,7 @@
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { db } from '..';
 import { wishlistItemTable, type WishlistItem, wishlistTable } from '../schema';
-import { ensureWishlistUnlocked } from '$lib/server';
+import { ensureUserOwnsWishlist, ensureWishlistUnlocked } from '$lib/server';
 import { WishlistItemNotCreatedError } from '$lib/server/errors/item/item-not-created';
 import { WishlistItemNotFoundError } from '$lib/server/errors/item/item-not-found';
 
@@ -22,12 +22,14 @@ export class WishlistItemsService {
 	 * @throws {WishlistItemNotCreatedError} If the item creation fails
 	 */
 	static async createNewItem(
+		userId: string,
 		itemName: string,
 		itemUrl: string,
 		itemQuantity: number,
 		itemPrice: string,
 		wishlistId: string
 	) {
+		await ensureUserOwnsWishlist(wishlistId, userId);
 		await ensureWishlistUnlocked(wishlistId);
 
 		const items: WishlistItem[] = await db
@@ -72,12 +74,8 @@ export class WishlistItemsService {
 		itemQuantity: number,
 		itemPrice: string
 	) {
+		await ensureUserOwnsWishlist(wishlistId, userId);
 		await ensureWishlistUnlocked(wishlistId);
-
-		const query = db
-			.select({ wishlistId: wishlistTable.id })
-			.from(wishlistTable)
-			.where(eq(wishlistTable.userId, userId));
 
 		const items: WishlistItem[] = await db
 			.update(wishlistItemTable)
@@ -88,13 +86,7 @@ export class WishlistItemsService {
 				price: itemPrice,
 				updatedAt: sql`NOW()`
 			})
-			.where(
-				and(
-					eq(wishlistItemTable.wishlistId, wishlistId),
-					eq(wishlistItemTable.id, itemId),
-					inArray(wishlistItemTable.wishlistId, query)
-				)
-			)
+			.where(and(eq(wishlistItemTable.wishlistId, wishlistId), eq(wishlistItemTable.id, itemId)))
 			.returning();
 
 		if (items.length === 0) {
@@ -116,23 +108,13 @@ export class WishlistItemsService {
 	 * @throws {WishlistItemNotFoundError} If the item is not found or doesn't belong to the user's wishlist
 	 */
 	static async deleteItem(itemId: string, wishlistId: string, userId: string) {
+		await ensureUserOwnsWishlist(wishlistId, userId);
 		await ensureWishlistUnlocked(wishlistId);
-
-		const query = db
-			.select({ wishlistId: wishlistTable.id })
-			.from(wishlistTable)
-			.where(eq(wishlistTable.userId, userId));
 
 		const items: WishlistItem[] = await db
 			.update(wishlistItemTable)
 			.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
-			.where(
-				and(
-					eq(wishlistItemTable.wishlistId, wishlistId),
-					eq(wishlistItemTable.id, itemId),
-					inArray(wishlistItemTable.wishlistId, query)
-				)
-			)
+			.where(and(eq(wishlistItemTable.wishlistId, wishlistId), eq(wishlistItemTable.id, itemId)))
 			.returning();
 
 		if (items.length === 0) {

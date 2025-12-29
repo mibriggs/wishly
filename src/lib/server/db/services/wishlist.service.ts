@@ -233,6 +233,29 @@ export class WishlistService {
 	}
 
 	/**
+	 * Checks if a user owns a specific wishlist.
+	 *
+	 * @param wishlistId - The ID of the wishlist
+	 * @param userId - The ID of the user
+	 * @returns True if the user owns the wishlist, false otherwise
+	 */
+	static async checkUserOwnsWishlist(wishlistId: string, userId: string): Promise<boolean> {
+		const wishlists = await db
+			.select({ id: wishlistTable.id })
+			.from(wishlistTable)
+			.where(
+				and(
+					eq(wishlistTable.id, wishlistId),
+					eq(wishlistTable.userId, userId),
+					not(wishlistTable.isDeleted)
+				)
+			)
+			.limit(1);
+
+		return wishlists.length > 0;
+	}
+
+	/**
 	 * Retrieves the lock state and name of a wishlist.
 	 *
 	 * @param wishlistId - The ID of the wishlist

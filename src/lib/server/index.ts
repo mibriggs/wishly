@@ -2,6 +2,7 @@ import { WISHLIST_SHARED_SALT } from '$env/static/private';
 import Hashids from 'hashids';
 import { WishlistService } from './db/services/wishlist.service';
 import { WishlistLockedError } from './errors/wishlist/locked-error';
+import { WishlistNotFoundError } from './errors/wishlist/wishlist-not-found';
 
 const hashids = new Hashids(WISHLIST_SHARED_SALT, 10);
 
@@ -28,6 +29,20 @@ export function shortIdToUuid(shortId: string): string {
 		/([0-9a-f]{8})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{12})/,
 		'$1-$2-$3-$4-$5'
 	);
+}
+
+/**
+ * Ensures a user owns the specified wishlist before allowing operations.
+ *
+ * @param wishlistId - The ID of the wishlist to check
+ * @param userId - The ID of the user who should own the wishlist
+ * @throws {WishlistNotFoundError} If the wishlist is not found or user doesn't own it
+ */
+export async function ensureUserOwnsWishlist(wishlistId: string, userId: string) {
+	const ownsWishlist = await WishlistService.checkUserOwnsWishlist(wishlistId, userId);
+	if (!ownsWishlist) {
+		throw new WishlistNotFoundError(wishlistId);
+	}
 }
 
 /**

@@ -51,7 +51,7 @@ const loadWishlistItems = async (
 
 // TODO: Should check if user owns this wishlist
 export const actions = {
-	createWishlistItem: async ({ request }) => {
+	createWishlistItem: async ({ request, locals }) => {
 		const formData = await request.formData();
 		const maybeItem = newItemSchema.safeParse(Object.fromEntries(formData.entries()));
 
@@ -60,6 +60,7 @@ export const actions = {
 
 			try {
 				const newItem = await WishlistItemsService.createNewItem(
+					locals.user.id,
 					item.itemName,
 					item.itemUrl,
 					item.itemQuantity,

@@ -13,10 +13,12 @@
 	<div class="mb-4 flex w-full flex-col gap-3">
 		<span class="h-10 w-full rounded-md border-2 bg-zinc-400 p-2 opacity-70 md:w-3/4 lg:w-1/2"
 		></span>
-		<div class="flex items-center gap-4">
-			<span class="h-10 w-[96px] rounded-md border-2 bg-zinc-400 p-2 opacity-70"></span>
-			<span class="h-10 w-1/3 rounded-md border-2 bg-zinc-400 p-2 opacity-70"></span>
-			<span class="h-10 w-[96px] rounded-md border-2 bg-zinc-400 p-2 opacity-70"></span>
+		<span class="h-10 w-full rounded-md border-2 bg-zinc-400 p-2 opacity-70 md:w-3/4 lg:w-1/2"
+		></span>
+		<div class="flex w-full items-center gap-2 md:w-3/4 md:gap-4 lg:w-1/2">
+			<span class="h-10 min-w-0 flex-1 rounded-md border-2 bg-zinc-400 p-2 opacity-70"></span>
+			<span class="h-10 w-16 rounded-md border-2 bg-zinc-400 p-2 opacity-70 md:w-20"></span>
+			<span class="h-10 w-20 rounded-md border-2 bg-zinc-400 p-2 opacity-70 md:w-28"></span>
 		</div>
 	</div>
 

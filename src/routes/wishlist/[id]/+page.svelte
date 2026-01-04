@@ -371,10 +371,15 @@
 					placeholder="Street Address"
 					class="w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2"
 				/>
-				<span class="flex items-center gap-4">
-					<input type="text" placeholder="City" class="w-1/3 rounded-md border-2 p-2" />
-					<input type="text" placeholder="State" class="w-[96px] rounded-md border-2 p-2" />
-					<input type="text" placeholder="Zip Code" class="w-[96px] rounded-md border-2 p-2" />
+				<input
+					type="text"
+					placeholder="Apartment, suite, etc. (optional)"
+					class="w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2"
+				/>
+				<span class="flex w-full items-center gap-2 md:w-3/4 md:gap-4 lg:w-1/2">
+					<input type="text" placeholder="City" class="min-w-0 flex-1 rounded-md border-2 p-2" />
+					<input type="text" placeholder="State" class="w-16 rounded-md border-2 p-2 md:w-20" />
+					<input type="text" placeholder="Zip Code" class="w-20 rounded-md border-2 p-2 md:w-28" />
 				</span>
 			</div>
 

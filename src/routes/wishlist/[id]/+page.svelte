@@ -22,8 +22,7 @@
 	import { createFormHandler } from '$lib/utils/form-handler';
 	import { wishlistItemSchema } from '$lib/schema';
 	import { z } from 'zod';
-	import { PUBLIC_MAPBOX_TOKEN } from '$env/static/public';
-	import { browser } from '$app/environment';
+	import AddressAutofill, { type AddressData } from '$lib/components/address-autofill.svelte';
 
 	let { data }: PageProps = $props();
 
@@ -258,40 +257,10 @@
 		}
 	};
 
-	let streetElement: HTMLInputElement | undefined = $state();
-	let mapboxInitialized = false;
-
-	// Initialize Mapbox Address Autofill when the street input becomes available
-	$effect(() => {
-		if (!browser || mapboxInitialized || !streetElement) return;
-
-		mapboxInitialized = true;
-
-		(async () => {
-			const { MapboxAddressAutofill } = await import('@mapbox/search-js-web');
-
-			const autofillElement = new MapboxAddressAutofill();
-			autofillElement.accessToken = PUBLIC_MAPBOX_TOKEN;
-			autofillElement.options = {
-				country: 'us'
-			};
-
-			// Get the parent div that contains all address inputs
-			const addressDiv = streetElement.parentElement;
-			if (!addressDiv) return;
-
-			// Copy classes from the div to preserve styling
-			autofillElement.className = addressDiv.className;
-
-			// Move all children from the div into the autofill element
-			while (addressDiv.firstChild) {
-				autofillElement.appendChild(addressDiv.firstChild);
-			}
-
-			// Replace the div with the autofill element
-			addressDiv.replaceWith(autofillElement as unknown as Node);
-		})();
-	});
+	const handleAddressSelect = async (address: AddressData) => {
+		console.log('Address selected:', address);
+		// TODO: Save address to database
+	};
 </script>
 
 {#snippet itemComponent(wishlistItem: WishlistItem)}
@@ -402,43 +371,7 @@
 			</div>
 			<h2 class="mb-1 text-lg font-semibold text-neutral-600">Shipping Address</h2>
 
-			<form>
-				<div class="mb-4 flex w-full flex-col gap-3">
-					<input
-						type="text"
-						placeholder="Street Address"
-						class="w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2"
-						autocomplete="address-line1"
-						bind:this={streetElement}
-					/>
-					<input
-						type="text"
-						placeholder="Apartment, suite, etc. (optional)"
-						class="w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2"
-						autocomplete="address-line2"
-					/>
-					<span class="flex w-full items-center gap-2 md:w-3/4 md:gap-4 lg:w-1/2">
-						<input
-							type="text"
-							placeholder="City"
-							class="min-w-0 flex-1 rounded-md border-2 p-2"
-							autocomplete="address-level2"
-						/>
-						<input
-							type="text"
-							placeholder="State"
-							class="w-16 rounded-md border-2 p-2 md:w-20"
-							autocomplete="address-level1"
-						/>
-						<input
-							type="text"
-							placeholder="Zip Code"
-							class="w-20 rounded-md border-2 p-2 md:w-28"
-							autocomplete="postal-code"
-						/>
-					</span>
-				</div>
-			</form>
+			<AddressAutofill onAddressSelect={handleAddressSelect} />
 
 			{#if wishlistData.visibleItems.length === 0}
 				<p class="italic text-neutral-500">No items added yet</p>

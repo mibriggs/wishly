@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import type { Wishlist, WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
-import { deleteItemSchema, newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
+import { newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
 import { shortIdToUuid } from '$lib';
 import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
 import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';

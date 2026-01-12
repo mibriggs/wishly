@@ -5,10 +5,10 @@ import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { deleteItemSchema, newItemSchema, updateItemSchema, uuidSchema } from '$lib/schema';
 import { shortIdToUuid } from '$lib';
-import { WishlistNotFoundError } from '$lib/server/errors/wishlist/wishlist-not-found';
-import { WishlistLockedError } from '$lib/server/errors/wishlist/locked-error';
-import { WishlistItemNotCreatedError } from '$lib/server/errors/item/item-not-created';
-import { WishlistItemNotFoundError } from '$lib/server/errors/item/item-not-found';
+import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
+import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
+import { WishlistItemNotCreatedError } from '$lib/errors/item/item-not-created';
+import { WishlistItemNotFoundError } from '$lib/errors/item/item-not-found';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -111,34 +111,6 @@ export const actions = {
 				return error(500);
 			}
 		} else {
-			return fail(400, maybeItem.error.flatten().fieldErrors);
-		}
-	},
-
-	deleteWishlistItem: async ({ request, locals }) => {
-		const formData = await request.formData();
-		const maybeItem = deleteItemSchema.safeParse(Object.fromEntries(formData.entries()));
-		if (maybeItem.success) {
-			const item = maybeItem.data;
-
-			try {
-				return {
-					deleted: await WishlistItemsService.deleteItem(
-						item.itemId,
-						item.wishlistId,
-						locals.user.id
-					)
-				};
-			} catch (e: unknown) {
-				if (e instanceof WishlistNotFoundError || e instanceof WishlistItemNotFoundError) {
-					return fail(404, { errorCause: e.message });
-				} else if (e instanceof WishlistLockedError) {
-					return fail(423, { errorCause: e.message });
-				}
-				return error(500);
-			}
-		} else {
-			console.error(maybeItem.error.flatten().fieldErrors);
 			return fail(400, maybeItem.error.flatten().fieldErrors);
 		}
 	},

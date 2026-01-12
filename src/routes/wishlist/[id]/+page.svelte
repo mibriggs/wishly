@@ -13,7 +13,7 @@
 	import NumberStepper from '$lib/components/number-stepper.svelte';
 	import { type Wishlist, type WishlistItem } from '$lib/server/db/schema';
 	import { fade, scale, slide } from 'svelte/transition';
-	import { onMount, tick } from 'svelte';
+	import { tick } from 'svelte';
 	import toast from 'svelte-french-toast';
 	import { WishlistItemStateClass } from './item-state.svelte';
 	import { ValidationStateClass } from './validation-state.svelte';
@@ -23,6 +23,10 @@
 	import { wishlistItemSchema } from '$lib/schema';
 	import { z } from 'zod';
 	import AddressAutofill, { type AddressData } from '$lib/components/address-autofill.svelte';
+	import { deleteWishlistItemCommand } from './delete-wishlist-item.remote';
+	import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
+	import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
+	import { WishlistItemNotFoundError } from '$lib/errors/item/item-not-found';
 
 	let { data }: PageProps = $props();
 
@@ -125,33 +129,36 @@
 		}
 	};
 
-	const submitDeleteWishlistItem: SubmitFunction = createFormHandler<{ deleted: WishlistItem }>({
-		onStart: (formData) => {
-			pageState = 'deleting';
-			if (itemState.itemToDelete) {
-				formData.append('itemId', itemState.itemToDelete.id);
-			}
+	const deleteWishlistItem = async () => {
+		pageState = 'deleting';
+		const deletionId = toast.loading('Deleting...');
+		if (!itemState.itemToDelete || !wishlistData.wishlist) {
+			toast.error('No wishlist item to delete', { id: deletionId });
+			pageState = 'idle';
+			return;
+		}
 
-			if (wishlistData.wishlist) {
-				formData.append('wishlistId', wishlistData.wishlist.id);
-			}
-		},
-		onSuccess: (data) => {
+		try {
+			const itemId = itemState.itemToDelete.id;
+			const wishlistId = wishlistData.wishlist.id;
+			const deletedItem = await deleteWishlistItemCommand({ itemId, wishlistId });
 			wishlistData.items
-				.filter((item) => item.id === data.deleted.id)
+				.filter((item) => item.id === deletedItem.id)
 				.forEach((item) => (item.isDeleted = true));
 			itemState.closeModal('DELETE');
 			pageState = 'idle';
-		},
-		onError: () => {
+			toast.success('Item Deleted!', { id: deletionId });
+		} catch (e: unknown) {
 			itemState.closeModal('DELETE');
+			if (e && typeof e === 'object' && 'status' in e) {
+				const err = e as { status: number; body: { message: string } };
+				toast.error(err.body.message, { id: deletionId });
+			} else {
+				console.error(e);
+			}
 			pageState = 'idle';
-		},
-		successSchema: z.object({ deleted: wishlistItemSchema }),
-		successMessage: 'Item Deleted',
-		loadingMessage: 'Deleting...',
-		invalidateAll: false
-	});
+		}
+	};
 
 	const submitNameChange: SubmitFunction = ({ formData }) => {
 		const renamingId = toast.loading('Renaming...');
@@ -182,29 +189,6 @@
 			pageState = 'idle';
 		};
 	};
-
-	// const submitNameChangeV2: SubmitFunction = createFormHandler<void>({
-	// 	onStart: (formData) => {
-	// 		pageState = 'renaming';
-	// 		if (wishlistData.wishlist) {
-	// 			formData.append('newName', itemState.newName);
-	// 			formData.append('oldName', wishlistData.wishlist.name);
-	// 			formData.append('wishlistId', wishlistData.wishlist.id);
-	// 		}
-	// 		itemState.isNameEditable = false;
-	// 	},
-	// 	onSuccess: () => {
-	// 		pageState = 'idle';
-	// 	},
-	// 	onError: () => {
-	// 		if (itemState.wishlistNameElement && wishlistData.wishlist) {
-	// 			itemState.wishlistNameElement.innerText = wishlistData.wishlist.name;
-	// 		}
-	// 	},
-	// 	successSchema: z.void(),
-	// 	successMessage: 'Renamed!',
-	// 	loadingMessage: 'Renaming...'
-	// });
 
 	const handleItemDelete = (selectedItem: WishlistItem) => {
 		itemState.itemToDelete = selectedItem;
@@ -530,14 +514,13 @@
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-150 active:scale-90"
 				onclick={() => itemState.closeModal('DELETE')}>Cancel</button
 			>
-			<form method="POST" action="?/deleteWishlistItem" use:enhance={submitDeleteWishlistItem}>
-				<button
-					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-150 active:scale-90"
-					disabled={pageState === 'deleting'}
-				>
-					Delete
-				</button>
-			</form>
+			<button
+				class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-150 active:scale-90"
+				disabled={pageState === 'deleting'}
+				onclick={deleteWishlistItem}
+			>
+				Delete
+			</button>
 		</div>
 	</div>
 </Modal>

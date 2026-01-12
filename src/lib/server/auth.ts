@@ -2,7 +2,7 @@ import type { Cookies, RequestEvent } from '@sveltejs/kit';
 import { UserService } from './db/services/user.service';
 import type { Session, User } from './db/schema';
 import { SessionUtils } from './session/session';
-import { UserNotFoundError } from './errors/user/user-not-found';
+import { UserNotFoundError } from '$lib/errors/user/user-not-found';
 
 /**
  * Authenticates a user for a request.

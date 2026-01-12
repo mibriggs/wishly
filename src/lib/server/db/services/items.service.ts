@@ -1,9 +1,9 @@
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '..';
-import { wishlistItemTable, type WishlistItem, wishlistTable } from '../schema';
+import { wishlistItemTable, type WishlistItem } from '../schema';
 import { ensureUserOwnsWishlist, ensureWishlistUnlocked } from '$lib/server';
-import { WishlistItemNotCreatedError } from '$lib/server/errors/item/item-not-created';
-import { WishlistItemNotFoundError } from '$lib/server/errors/item/item-not-found';
+import { WishlistItemNotCreatedError } from '$lib/errors/item/item-not-created';
+import { WishlistItemNotFoundError } from '$lib/errors/item/item-not-found';
 
 export class WishlistItemsService {
 	constructor() {}

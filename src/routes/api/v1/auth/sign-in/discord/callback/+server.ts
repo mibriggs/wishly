@@ -1,6 +1,6 @@
+import { SessionNotCreatedError } from '$lib/errors/session/session-not-created';
 import { discordUserSchema, type DiscordUser } from '$lib/schema';
 import { UserService } from '$lib/server/db/services/user.service';
-import { SessionNotCreatedError } from '$lib/server/errors/session/session-not-created';
 import { discord } from '$lib/server/providers/discord';
 import { INACTIVITY_TIMEOUT_SECONDS, SessionUtils } from '$lib/server/session/session';
 import type { Cookies, RequestHandler } from '@sveltejs/kit';

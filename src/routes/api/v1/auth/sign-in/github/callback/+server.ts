@@ -1,6 +1,6 @@
 import { githubUserSchema, type GithubUser } from '$lib/schema';
 import { UserService } from '$lib/server/db/services/user.service';
-import { SessionNotCreatedError } from '$lib/server/errors/session/session-not-created';
+import { SessionNotCreatedError } from '$lib/errors/session/session-not-created';
 import { github } from '$lib/server/providers/github';
 import { INACTIVITY_TIMEOUT_SECONDS, SessionUtils } from '$lib/server/session/session';
 import type { Cookies, RequestHandler } from '@sveltejs/kit';

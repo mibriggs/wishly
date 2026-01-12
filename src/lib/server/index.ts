@@ -1,8 +1,8 @@
 import { WISHLIST_SHARED_SALT } from '$env/static/private';
 import Hashids from 'hashids';
 import { WishlistService } from './db/services/wishlist.service';
-import { WishlistLockedError } from './errors/wishlist/locked-error';
-import { WishlistNotFoundError } from './errors/wishlist/wishlist-not-found';
+import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
+import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
 
 const hashids = new Hashids(WISHLIST_SHARED_SALT, 10);
 

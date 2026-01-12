@@ -2,8 +2,8 @@ import { db } from '..';
 import { and, eq, lte, sql } from 'drizzle-orm';
 import { sessionTable, type Session } from '../schema';
 import { getSingleObjectOrNull } from '$lib';
-import { SessionNotCreatedError } from '$lib/server/errors/session/session-not-created';
-import { SessionNotFoundError } from '$lib/server/errors/session/session-not-found';
+import { SessionNotCreatedError } from '$lib/errors/session/session-not-created';
+import { SessionNotFoundError } from '$lib/errors/session/session-not-found';
 
 export class SessionService {
 	constructor() {}

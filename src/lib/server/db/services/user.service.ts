@@ -1,6 +1,6 @@
 import { getSingleObjectOrNull } from '$lib';
-import { UserNotFoundError } from '$lib/server/errors/user/user-not-found';
-import { UserNotCreatedError } from '$lib/server/errors/user/user-not-created';
+import { UserNotFoundError } from '$lib/errors/user/user-not-found';
+import { UserNotCreatedError } from '$lib/errors/user/user-not-created';
 import { db } from '..';
 import { userTable, type User } from '../schema';
 import { eq } from 'drizzle-orm';

@@ -3,8 +3,8 @@ import { sharedWishlistTable, wishlistItemTable, wishlistTable, type Wishlist } 
 import { and, desc, eq, inArray, not, sql } from 'drizzle-orm';
 import { UserService } from './user.service';
 import { ensureWishlistUnlocked } from '$lib/server';
-import { WishlistNotFoundError } from '$lib/server/errors/wishlist/wishlist-not-found';
-import { WishlistNotCreatedError } from '$lib/server/errors/wishlist/wishlist-not-created';
+import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
+import { WishlistNotCreatedError } from '$lib/errors/wishlist/wishlist-not-created';
 
 export class WishlistService {
 	constructor() {}

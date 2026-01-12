@@ -1,7 +1,7 @@
 import { constantTimeEqual, generateSecureRandomString, hashSecret } from '$lib';
+import { SessionNotFoundError } from '$lib/errors/session/session-not-found';
 import type { Session } from '../db/schema';
 import { SessionService } from '../db/services/session.service';
-import { SessionNotFoundError } from '../errors/session/session-not-found';
 
 type SessionWithToken = Session & { token: string };
 

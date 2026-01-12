@@ -108,7 +108,9 @@
 			autocomplete="address-line2"
 			class={twMerge('w-full rounded-md border-2 p-2 md:w-3/4 lg:w-1/2', apartmentClass)}
 		/>
-		<span class={twMerge('flex w-full items-center gap-2 md:w-3/4 md:gap-4 lg:w-1/2', cityRowClass)}>
+		<span
+			class={twMerge('flex w-full items-center gap-2 md:w-3/4 md:gap-4 lg:w-1/2', cityRowClass)}
+		>
 			<input
 				type="text"
 				placeholder="City"

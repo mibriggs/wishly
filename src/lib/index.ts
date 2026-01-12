@@ -2,6 +2,7 @@
 import { encodeBase32LowerCase } from '@oslojs/encoding';
 import { PUBLIC_HASHIDS_SALT } from '$env/static/public';
 import Hashids from 'hashids';
+import { httpErrorSchema, type HttpError } from './schema';
 
 const hashids = new Hashids(PUBLIC_HASHIDS_SALT, 10);
 
@@ -82,3 +83,13 @@ export const shareDurationEntries = Object.entries(shareDurationOptions) as [
 	ShareDuration,
 	(typeof shareDurationOptions)[ShareDuration]
 ][];
+
+const parseHttpError = (e: unknown): HttpError | undefined => {
+	const maybeHttpError = httpErrorSchema.safeParse(e);
+	return maybeHttpError.success ? maybeHttpError.data : undefined;
+};
+
+export const getErrorMessage = (e: unknown, fallback = 'Something went wrong'): string => {
+	const error = parseHttpError(e);
+	return error?.body.message ?? fallback;
+};

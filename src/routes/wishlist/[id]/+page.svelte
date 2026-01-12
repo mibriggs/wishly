@@ -24,9 +24,7 @@
 	import { z } from 'zod';
 	import AddressAutofill, { type AddressData } from '$lib/components/address-autofill.svelte';
 	import { deleteWishlistItemCommand } from './delete-wishlist-item.remote';
-	import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
-	import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
-	import { WishlistItemNotFoundError } from '$lib/errors/item/item-not-found';
+	import { getErrorMessage } from '$lib';
 
 	let { data }: PageProps = $props();
 
@@ -149,13 +147,10 @@
 			pageState = 'idle';
 			toast.success('Item Deleted!', { id: deletionId });
 		} catch (e: unknown) {
+			const errorMessage = getErrorMessage(e);
 			itemState.closeModal('DELETE');
-			if (e && typeof e === 'object' && 'status' in e) {
-				const err = e as { status: number; body: { message: string } };
-				toast.error(err.body.message, { id: deletionId });
-			} else {
-				console.error(e);
-			}
+			toast.error(errorMessage, { id: deletionId });
+			console.error(e);
 			pageState = 'idle';
 		}
 	};

@@ -110,8 +110,16 @@ export const durationSchema = z.enum([
 	'NEVER'
 ]);
 
+export const httpErrorSchema = z.object({
+	status: z.number(),
+	body: z.object({
+		message: z.string()
+	})
+});
+
 export type DiscordUser = z.infer<typeof discordUserSchema>;
 export type GithubUser = z.infer<typeof githubUserSchema>;
+export type HttpError = z.infer<typeof httpErrorSchema>;
 export type FormDataInput = {
 	action: URL;
 	formData: FormData;

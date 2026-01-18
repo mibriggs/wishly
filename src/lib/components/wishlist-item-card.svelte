@@ -51,7 +51,7 @@
 	<p class="rounded-md bg-neutral-300 px-4 py-3">📦</p>
 
 	<span>
-		<p class=" text-lg font-semibold">{name}</p>
+		<p class=" text-lg font-semibold">{item.itemName}</p>
 		<a href={item.url} target="_blank" class=" text-blue-600 underline underline-offset-1"
 			>View Product</a
 		>

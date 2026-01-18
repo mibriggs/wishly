@@ -18,6 +18,7 @@
 	import { editItemForm } from './edit-item.remote';
 	import NewItemForm from '$lib/components/new-item-form.svelte';
 	import EditItemForm from '$lib/components/edit-item-form.svelte';
+	import { tick } from 'svelte';
 
 	const wishlistData = getWishlistQuery();
 	const itemState = new WishlistItemStateClass();
@@ -31,6 +32,9 @@
 
 	const setFocusOnHeaderElement = async () => {
 		itemState.isNameEditable = true;
+
+		// Wait a tick for contenteditable to be applied
+		await tick();
 
 		itemState.wishlistNameElement?.focus();
 

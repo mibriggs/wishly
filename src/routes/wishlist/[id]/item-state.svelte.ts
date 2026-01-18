@@ -16,16 +16,10 @@ interface WishlistItemState {
 
 	mode: 'add' | 'edit';
 
-	name: string;
-	url: string;
-	quantity: number;
-	cost: number | undefined;
-
 	updateModalState: (newState: boolean, modal: 'NEW' | 'DELETE') => void;
 	closeModal: (modal: 'NEW' | 'DELETE') => void;
 	openAddModal: () => void;
-	openEditModal: (item: WishlistItem) => void;
-	reset: () => void;
+	openEditModal: () => void;
 }
 
 export class WishlistItemStateClass implements WishlistItemState {
@@ -42,11 +36,6 @@ export class WishlistItemStateClass implements WishlistItemState {
 	isDeleteItemModalOpen: boolean = $state(false);
 
 	mode: 'add' | 'edit' = $state('add');
-
-	name: string = $state('');
-	url: string = $state('');
-	quantity: number = $state(1);
-	cost: number | undefined = $state(undefined);
 
 	updateModalState(newState: boolean, modal: 'NEW' | 'DELETE') {
 		if (modal === 'DELETE') {
@@ -66,25 +55,11 @@ export class WishlistItemStateClass implements WishlistItemState {
 
 	openAddModal() {
 		this.mode = 'add';
-		this.itemToEdit = undefined;
-		this.reset();
 		this.isNewItemModalOpen = true;
 	}
 
-	openEditModal(item: WishlistItem) {
+	openEditModal() {
 		this.mode = 'edit';
-		this.itemToEdit = item;
-		this.name = item.itemName;
-		this.url = item.url;
-		this.quantity = item.quantity;
-		this.cost = parseFloat(item.price);
 		this.isNewItemModalOpen = true;
-	}
-
-	reset() {
-		this.name = '';
-		this.url = '';
-		this.quantity = 1;
-		this.cost = undefined;
 	}
 }

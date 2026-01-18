@@ -1,10 +1,10 @@
 import { error, fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
-import { newItemSchema, updateItemSchema } from '$lib/schema';
+import { updateItemSchema } from '$lib/schema';
 import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
 import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
-import { WishlistItemNotCreatedError } from '$lib/errors/item/item-not-created';
+
 import { WishlistItemNotFoundError } from '$lib/errors/item/item-not-found';
 
 export const load: PageServerLoad = async ({ locals }) => {

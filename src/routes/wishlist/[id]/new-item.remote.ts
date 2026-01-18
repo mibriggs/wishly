@@ -7,7 +7,7 @@ import { newItemSchema } from '$lib/schema';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { error } from '@sveltejs/kit';
 
-export const createNewItemForm = form(
+export const createItemForm = form(
 	newItemSchema.omit({ wishlistId: true }),
 	async ({ itemName, itemUrl, itemQuantity, itemCost }) => {
 		const { locals, params } = getRequestEvent();

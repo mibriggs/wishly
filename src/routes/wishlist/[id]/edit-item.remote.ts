@@ -7,11 +7,14 @@ import { updateItemSchema } from '$lib/schema';
 import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { error } from '@sveltejs/kit';
 
-export const editItem = form(
+export const editItemForm = form(
 	updateItemSchema.omit({ wishlistId: true }),
 	async ({ itemId, itemName, itemUrl, itemQuantity, itemCost }) => {
+		console.log('before get request event');
+
 		const { locals, params } = getRequestEvent();
 
+		console.log('in edit item remote function');
 		if (!params.id) return;
 
 		try {

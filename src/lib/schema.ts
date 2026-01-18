@@ -120,6 +120,31 @@ export const httpErrorSchema = z.object({
 	})
 });
 
+interface BaseItemFormData {
+	itemName: string;
+	itemUrl: string;
+	itemCost: string | number;
+	itemQuantity?: number | undefined;
+}
+interface EditItemFormData extends BaseItemFormData {
+	itemId: string;
+}
+
+interface BaseItemFields {
+	form: HTMLFormElement;
+	submit: RemoteSubmitFunction;
+}
+
+export interface CreateNewItemFields extends BaseItemFields {
+	data: BaseItemFormData;
+}
+
+export interface EditItemFields extends BaseItemFields {
+	form: HTMLFormElement;
+	submit: RemoteSubmitFunction;
+	data: EditItemFormData;
+}
+
 export type DiscordUser = z.infer<typeof discordUserSchema>;
 export type GithubUser = z.infer<typeof githubUserSchema>;
 export type HttpError = z.infer<typeof httpErrorSchema>;
@@ -134,3 +159,4 @@ export type FormDataInput = {
 export type RemoteSubmitFunction = () => Promise<void> & {
 	updates: (...queries: Array<RemoteQuery<any> | RemoteQueryOverride>) => Promise<void>;
 };
+export type PageState = 'idle' | 'creating' | 'updating' | 'deleting' | 'renaming' | 'loading';

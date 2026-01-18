@@ -2,7 +2,6 @@ import type Modal from '$lib/components/modal.svelte';
 import type { WishlistItem } from '$lib/server/db/schema';
 
 interface WishlistItemState {
-	newName: string;
 	isNameEditable: boolean;
 
 	itemToDelete: WishlistItem | undefined;
@@ -30,7 +29,6 @@ interface WishlistItemState {
 }
 
 export class WishlistItemStateClass implements WishlistItemState {
-	newName: string = $state('');
 	isNameEditable: boolean = $state(false);
 
 	itemToDelete: WishlistItem | undefined = $state(undefined);

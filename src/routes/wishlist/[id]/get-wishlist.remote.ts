@@ -5,21 +5,18 @@ import type { WishlistItem } from '$lib/server/db/schema';
 import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import { error, isHttpError } from '@sveltejs/kit';
 
-export const getWishlist = query(async () => {
+export const getWishlistQuery = query(async () => {
 	const { params, locals } = getRequestEvent();
 
-	if (!params.id) return { found: false, redirectTo: '/', message: 'Invalid wishlist ID' };
-	console.log('params exist');
+	if (!params.id) error(400, 'No id present');
 	const maybeUuid = uuidSchema.safeParse(shortIdToUuid(params.id));
 
-	if (!maybeUuid.success) return { found: false, redirectTo: '/', message: 'Invalid wishlist ID' };
-	console.log('is uuid');
+	if (!maybeUuid.success) error(404, 'Wishlist Not Found');
 	try {
 		const wishlistWithItems = await WishlistService.findWithItems(maybeUuid.data, locals.user.id);
 
 		if (wishlistWithItems.length === 0) {
-			console.log('No data found');
-			return { found: false, redirectTo: '/', message: 'Invalid wishlist ID' };
+			error(404, 'Wishlist Not Found');
 		}
 
 		return {
@@ -30,8 +27,6 @@ export const getWishlist = query(async () => {
 		};
 	} catch (err: unknown) {
 		if (isHttpError(err)) throw err;
-
-		console.log('In catch block');
 		console.error('Database error:', err);
 		return error(500, 'Failed to load wishlist');
 	}

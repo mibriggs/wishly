@@ -6,7 +6,7 @@ import { WishlistItemsService } from '$lib/server/db/services/items.service';
 import { error } from '@sveltejs/kit';
 import { z } from 'zod/v4';
 
-export const deleteWishlistItemCommand = command(
+export const deleteItemCommand = command(
 	z.object({ itemId: z.string(), wishlistId: z.string() }),
 	async ({ itemId, wishlistId }) => {
 		const { locals } = getRequestEvent();
@@ -15,6 +15,7 @@ export const deleteWishlistItemCommand = command(
 		} catch (e: unknown) {
 			let errorCode: number = 500;
 			let errorMessage: string = 'Something went wrong';
+
 			if (e instanceof WishlistNotFoundError || e instanceof WishlistItemNotFoundError) {
 				errorCode = 404;
 				errorMessage = e.message;
@@ -23,7 +24,7 @@ export const deleteWishlistItemCommand = command(
 				errorMessage = e.message;
 			}
 
-			return error(errorCode, { message: errorMessage });
+			error(errorCode, { message: errorMessage });
 		}
 	}
 );

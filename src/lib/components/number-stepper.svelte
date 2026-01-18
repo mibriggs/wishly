@@ -2,23 +2,28 @@
 	interface Props {
 		min?: number;
 		max?: number;
-		value: number;
 		interval?: number | undefined;
 		speed?: number;
 		velocity?: number;
+		name: string;
+		value: string | number;
+		'aria-invalid': boolean | 'false' | 'true' | undefined;
 	}
 
 	let {
 		min: minNumber = 1,
 		max: maxNumber = 99,
-		value = $bindable(),
+		value,
 		interval,
 		speed = 300,
-		velocity = 0
+		velocity = 0,
+		name,
+		'aria-invalid': ariaInvalid
 	}: Props = $props();
 
 	const digitCount = $derived(String(maxNumber).length);
-	const digits = $derived(String(value).padStart(digitCount, '0').split('').map(Number));
+	const safeValue = $derived(typeof value === 'number' && !isNaN(value) ? value : minNumber);
+	const digits = $derived(String(safeValue).padStart(digitCount, '0').split('').map(Number));
 
 	function vibrate() {
 		if (navigator.vibrate) navigator.vibrate(50);
@@ -61,7 +66,20 @@
 	}
 
 	function updateNumber(delta: number) {
+		console.log(typeof value);
+		if (typeof value === 'string') {
+			value = parseInt(value);
+		}
 		value = Math.min(maxNumber, Math.max(minNumber, value + delta));
+	}
+
+	function handleInputChange() {
+		console.log(typeof value);
+		if (typeof value === 'string') {
+			value = parseInt(value);
+		} // Clamp value if it goes out of bounds
+		if (value < minNumber) value = minNumber;
+		if (value > maxNumber) value = maxNumber;
 	}
 </script>
 
@@ -82,9 +100,20 @@
 {/snippet}
 
 <div class="flex items-center gap-2 font-mono text-2xl" aria-live="polite">
-	{@render adjuster('&#8722;', value === minNumber, decrement, stopChange)}
+	{@render adjuster('&#8722;', safeValue <= minNumber, decrement, stopChange)}
 
-	<div class="flex select-none justify-center overflow-hidden">
+	<div class="relative flex select-none justify-center overflow-hidden">
+		{#if name}
+			<input
+				{name}
+				{value}
+				oninput={handleInputChange}
+				min={minNumber}
+				max={maxNumber}
+				aria-invalid={ariaInvalid}
+				class="sr-only"
+			/>
+		{/if}
 		{#each digits as digit}
 			<div class="h-10 overflow-hidden">
 				<div
@@ -101,5 +130,5 @@
 		{/each}
 	</div>
 
-	{@render adjuster('&#x2b;', value === maxNumber, increment, stopChange)}
+	{@render adjuster('&#x2b;', safeValue >= maxNumber, increment, stopChange)}
 </div>

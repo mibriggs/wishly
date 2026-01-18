@@ -1,3 +1,4 @@
+import type { RemoteQuery, RemoteQueryOverride } from '@sveltejs/kit';
 import { z } from 'zod';
 
 export const uuidSchema = z.string().uuid();
@@ -71,7 +72,9 @@ export const newItemSchema = z.object({
 	itemUrl: z.string({ required_error: 'Url must be supplied' }).url(),
 	itemQuantity: z.coerce
 		.number({ required_error: 'You must have at least one item' })
-		.min(1, { message: 'You must have at least one item' }),
+		.int({ message: 'Quantity must be a whole number' })
+		.min(1, { message: 'You must have at least one item' })
+		.default(1),
 	itemCost: z.union([
 		z
 			.number({ required_error: 'Price is required' })
@@ -127,4 +130,7 @@ export type FormDataInput = {
 	controller: AbortController;
 	submitter: HTMLElement | null;
 	cancel: () => void;
+};
+export type RemoteSubmitFunction = () => Promise<void> & {
+	updates: (...queries: Array<RemoteQuery<any> | RemoteQueryOverride>) => Promise<void>;
 };

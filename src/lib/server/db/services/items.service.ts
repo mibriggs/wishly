@@ -32,6 +32,7 @@ export class WishlistItemsService {
 		await ensureUserOwnsWishlist(wishlistId, userId);
 		await ensureWishlistUnlocked(wishlistId);
 
+		console.log('User owns wishlist and wishlist is not locked');
 		const items: WishlistItem[] = await db
 			.insert(wishlistItemTable)
 			.values({

@@ -197,6 +197,7 @@
 				itemState.openAddModal();
 				createItemForm.fields.itemQuantity.set(1);
 			}}
+			disabled={wishlistData.current.wishlist.isLocked}
 		>
 			<Plus size={16} />
 			<p>Add an item</p>

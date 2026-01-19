@@ -34,20 +34,21 @@
 	const setFocusOnHeaderElement = async () => {
 		itemState.isNameEditable = true;
 
-		itemState.wishlistNameElement?.focus();
+		requestAnimationFrame(() => {
+			itemState.wishlistNameElement?.focus();
+			setTimeout(() => {
+				if (!itemState.wishlistNameElement) return;
 
-		setTimeout(() => {
-			if (!itemState.wishlistNameElement) return;
+				const range = document.createRange();
+				range.selectNodeContents(itemState.wishlistNameElement);
 
-			const range = document.createRange();
-			range.selectNodeContents(itemState.wishlistNameElement);
+				const selection = window.getSelection();
 
-			const selection = window.getSelection();
-
-			if (!selection) return;
-			selection.removeAllRanges();
-			selection.addRange(range);
-		}, 50);
+				if (!selection) return;
+				selection.removeAllRanges();
+				selection.addRange(range);
+			}, 50);
+		});
 	};
 
 	const revertNameChange = () => {

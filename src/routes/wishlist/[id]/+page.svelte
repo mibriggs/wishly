@@ -59,6 +59,19 @@
 		el?.setAttribute('contenteditable', 'true');
 		el?.focus();
 		itemState.isNameEditable = true;
+
+		queueMicrotask(() => {
+			if (!itemState.wishlistNameElement) return;
+
+			const range = document.createRange();
+			range.selectNodeContents(itemState.wishlistNameElement);
+
+			const selection = window.getSelection();
+
+			if (!selection) return;
+			selection.removeAllRanges();
+			selection.addRange(range);
+		});
 	};
 
 	const revertNameChange = () => {

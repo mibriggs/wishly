@@ -33,9 +33,6 @@
 	const setFocusOnHeaderElement = async () => {
 		itemState.isNameEditable = true;
 
-		// Wait a tick for contenteditable to be applied
-		await tick();
-
 		itemState.wishlistNameElement?.focus();
 
 		setTimeout(() => {

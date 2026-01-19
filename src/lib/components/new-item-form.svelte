@@ -80,9 +80,11 @@
 			issues={createItemForm.fields.itemName.issues()}
 			formProps={createItemForm.fields.itemName.as('text')}
 		/>
-		{#each createItemForm.fields.itemName.issues() as issue}
-			<ErrorMessage message={issue.message} />
-		{/each}
+		<div class="min-h-4">
+			{#each createItemForm.fields.itemName.issues() as issue}
+				<ErrorMessage message={issue.message} />
+			{/each}
+		</div>
 	</span>
 
 	<span class="flex flex-col items-start justify-center gap-1">
@@ -90,16 +92,20 @@
 			issues={createItemForm.fields.itemUrl.issues()}
 			formProps={createItemForm.fields.itemUrl.as('text')}
 		/>
-		{#each createItemForm.fields.itemUrl.issues() as issue}
-			<ErrorMessage message={issue.message} />
-		{/each}
+		<div class="min-h-4">
+			{#each createItemForm.fields.itemUrl.issues() as issue}
+				<ErrorMessage message={issue.message} />
+			{/each}
+		</div>
 	</span>
 
 	<span class="flex flex-col items-start justify-center gap-1">
 		<NumberStepper {...createItemForm.fields.itemQuantity.as('number')} />
-		{#each createItemForm.fields.itemQuantity.issues() as issue}
-			<ErrorMessage message={issue.message} />
-		{/each}
+		<div class="min-h-4">
+			{#each createItemForm.fields.itemQuantity.issues() as issue}
+				<ErrorMessage message={issue.message} />
+			{/each}
+		</div>
 	</span>
 
 	<span class="flex flex-col items-start justify-center gap-1">
@@ -107,9 +113,11 @@
 			issues={createItemForm.fields.itemCost.issues()}
 			formProps={createItemForm.fields.itemCost.as('text')}
 		/>
-		{#each createItemForm.fields.itemCost.issues() as issue}
-			<ErrorMessage message={issue.message} />
-		{/each}
+		<div class="min-h-4">
+			{#each createItemForm.fields.itemCost.issues() as issue}
+				<ErrorMessage message={issue.message} />
+			{/each}
+		</div>
 	</span>
 	<span class="mt-1 flex gap-2 self-center">
 		<button

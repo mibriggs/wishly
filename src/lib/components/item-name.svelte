@@ -19,7 +19,7 @@
 	placeholder="Product name..."
 	class={twJoin(
 		'w-3/4 rounded-md border p-1 focus:outline-none',
-		!!issues?.length && 'border-red-500'
+		!!issues?.length && 'border-red-500 bg-red-100'
 	)}
 	{...formProps}
 />

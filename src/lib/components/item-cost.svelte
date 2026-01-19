@@ -17,14 +17,14 @@
 <label
 	class={twJoin(
 		'flex w-fit select-none items-center gap-1 rounded-md px-2 py-1 text-2xl',
-		!!issues?.length && 'border border-red-500'
+		!!issues?.length && 'border border-red-500 bg-red-100'
 	)}
 >
 	$
 	<input
 		inputmode="decimal"
 		placeholder="00.00"
-		class="w-28 focus:outline-none"
+		class={twJoin('w-28 focus:outline-none', !!issues?.length && 'bg-red-100')}
 		id="itemCost"
 		{...formProps}
 	/>

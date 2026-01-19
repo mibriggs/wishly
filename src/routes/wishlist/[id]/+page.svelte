@@ -36,18 +36,17 @@
 
 		requestAnimationFrame(() => {
 			itemState.wishlistNameElement?.focus();
-			setTimeout(() => {
-				if (!itemState.wishlistNameElement) return;
 
-				const range = document.createRange();
-				range.selectNodeContents(itemState.wishlistNameElement);
+			if (!itemState.wishlistNameElement) return;
 
-				const selection = window.getSelection();
+			const range = document.createRange();
+			range.selectNodeContents(itemState.wishlistNameElement);
 
-				if (!selection) return;
-				selection.removeAllRanges();
-				selection.addRange(range);
-			}, 50);
+			const selection = window.getSelection();
+
+			if (!selection) return;
+			selection.removeAllRanges();
+			selection.addRange(range);
 		});
 	};
 

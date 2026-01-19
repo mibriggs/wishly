@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { isWholeNumber } from '$lib';
+
 	interface Props {
 		min?: number;
 		max?: number;
@@ -22,7 +24,15 @@
 	}: Props = $props();
 
 	const digitCount = $derived(String(maxNumber).length);
-	const safeValue = $derived(typeof value === 'number' && !isNaN(value) ? value : minNumber);
+	const safeValue = $derived.by(() => {
+		let actualSafe = minNumber;
+		if (typeof value === 'number' && !isNaN(value)) {
+			actualSafe = value;
+		} else if (typeof value === 'string' && isWholeNumber(value)) {
+			actualSafe = Number(value);
+		}
+		return actualSafe;
+	});
 	const digits = $derived(String(safeValue).padStart(digitCount, '0').split('').map(Number));
 
 	function vibrate() {

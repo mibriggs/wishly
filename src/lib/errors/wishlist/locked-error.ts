@@ -1,6 +1,6 @@
 export class WishlistLockedError extends Error {
 	constructor() {
-		super(`This wishlist is locked and cannot be modified`);
+		super(`Cannot modify locked wishlists`);
 		this.name = 'WishlistLockedError';
 	}
 }

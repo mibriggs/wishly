@@ -84,8 +84,7 @@ export class WishlistItemsService {
 				itemName,
 				url: itemUrl,
 				quantity: itemQuantity,
-				price: itemPrice,
-				updatedAt: sql`NOW()`
+				price: itemPrice
 			})
 			.where(and(eq(wishlistItemTable.wishlistId, wishlistId), eq(wishlistItemTable.id, itemId)))
 			.returning();
@@ -114,7 +113,7 @@ export class WishlistItemsService {
 
 		const items: WishlistItem[] = await db
 			.update(wishlistItemTable)
-			.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
+			.set({ isDeleted: true, deletedAt: sql`NOW()` })
 			.where(and(eq(wishlistItemTable.wishlistId, wishlistId), eq(wishlistItemTable.id, itemId)))
 			.returning();
 

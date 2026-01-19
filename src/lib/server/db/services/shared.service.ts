@@ -80,7 +80,7 @@ export class SharedWishlistService {
 		console.log(id, newExpiresAt, durationType);
 		const links = await db
 			.update(sharedWishlistTable)
-			.set({ updatedAt: sql`NOW()`, expiresAt: newExpiresAt, durationType })
+			.set({ expiresAt: newExpiresAt, durationType })
 			.where(eq(sharedWishlistTable.id, id))
 			.returning();
 

@@ -13,17 +13,18 @@
 	import { renameWishlistCommand } from './rename-wishlist.remote';
 	import type { WishlistItem } from '$lib/server/db/schema';
 	import { createItemForm } from './new-item.remote';
-	import { type PageState } from '$lib/schema';
+	import { type AddressData, type PageState } from '$lib/schema';
 	import { page } from '$app/state';
 	import { editItemForm } from './edit-item.remote';
 	import NewItemForm from '$lib/components/new-item-form.svelte';
 	import EditItemForm from '$lib/components/edit-item-form.svelte';
-	import { tick } from 'svelte';
+	import { saveAddressCommand } from './address.remote';
 
 	const wishlistData = getWishlistQuery();
 	const itemState = new WishlistItemStateClass();
 
 	let pageState: PageState = $state<PageState>('loading');
+	let addressFormElement: HTMLFormElement | undefined = $state();
 
 	const handleItemDelete = (selectedItem: WishlistItem) => {
 		itemState.itemToDelete = selectedItem;
@@ -117,6 +118,36 @@
 		}
 	};
 
+	const saveWishlistAddress = async (address: AddressData) => {
+		pageState = 'updating';
+		const loadingId = toast.loading('Updating wishlist address...');
+		try {
+			await saveAddressCommand(address).updates(
+				getWishlistQuery().withOverride((curr) => {
+					return {
+						wishlist: {
+							...curr.wishlist,
+							streetAddress: address.streetAddress,
+							streetAddress2: address.addressLine2,
+							city: address.city,
+							state: address.state,
+							zipCode: address.zipCode
+						},
+						items: [...curr.items]
+					};
+				})
+			);
+			toast.success('Address Saved!', { id: loadingId });
+		} catch (e: unknown) {
+			const errorMessage = getErrorMessage(e);
+			toast.error(errorMessage);
+			console.error(e, { id: loadingId });
+			addressFormElement?.reset();
+		} finally {
+			pageState = 'idle';
+		}
+	};
+
 	const initializeEditForm = (itemToEdit: WishlistItem) => {
 		editItemForm.fields.set({
 			itemId: itemToEdit.id,
@@ -169,7 +200,16 @@
 		</div>
 		<h2 class="mb-1 text-lg font-semibold text-neutral-600">Shipping Address</h2>
 
-		<AddressAutofill onAddressSelect={() => console.log('hello world')} />
+		<AddressAutofill
+			bind:formElement={addressFormElement}
+			onAddressSelect={saveWishlistAddress}
+			disabled={wishlistData.current.wishlist.isLocked}
+			streetPlaceholder={wishlistData.current.wishlist.streetAddress}
+			apartmentPlaceholder={wishlistData.current.wishlist.streetAddress2}
+			cityPlaceholder={wishlistData.current.wishlist.city}
+			statePlaceholder={wishlistData.current.wishlist.state}
+			zipPlaceholder={wishlistData.current.wishlist.zipCode}
+		/>
 
 		{#if wishlistData.current.items.length === 0}
 			<p class="italic text-neutral-500">No items added yet</p>
@@ -181,8 +221,8 @@
 							item={wishlistItem}
 							isLocked={wishlistData.current.wishlist.isLocked}
 							onEditItem={() => {
-								itemState.openEditModal();
 								initializeEditForm(wishlistItem);
+								itemState.openEditModal();
 							}}
 							onDeleteItem={handleItemDelete}
 						/>

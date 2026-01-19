@@ -160,3 +160,11 @@ export type RemoteSubmitFunction = () => Promise<void> & {
 	updates: (...queries: Array<RemoteQuery<any> | RemoteQueryOverride>) => Promise<void>;
 };
 export type PageState = 'idle' | 'creating' | 'updating' | 'deleting' | 'renaming' | 'loading';
+
+export interface AddressData {
+	streetAddress: string;
+	addressLine2: string;
+	city: string;
+	state: string;
+	zipCode: string;
+}

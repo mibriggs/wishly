@@ -93,3 +93,8 @@ export const getErrorMessage = (e: unknown, fallback = 'Something went wrong'): 
 	const error = parseHttpError(e);
 	return error?.body.message ?? fallback;
 };
+
+export function isWholeNumber(str: string) {
+	const num = Number(str);
+	return Number.isInteger(num);
+}

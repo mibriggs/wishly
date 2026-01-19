@@ -133,7 +133,7 @@ export class WishlistService {
 
 			await transaction
 				.update(wishlistItemTable)
-				.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
+				.set({ isDeleted: true, deletedAt: sql`NOW()` })
 				.where(
 					and(
 						eq(wishlistItemTable.wishlistId, wishlistId),
@@ -147,7 +147,7 @@ export class WishlistService {
 
 			const wishlists: Wishlist[] = await transaction
 				.update(wishlistTable)
-				.set({ isDeleted: true, deletedAt: sql`NOW()`, updatedAt: sql`NOW()` })
+				.set({ isDeleted: true, deletedAt: sql`NOW()` })
 				.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 				.returning();
 
@@ -170,7 +170,7 @@ export class WishlistService {
 	static async updateWishlistLock(wishlistId: string, userId: string) {
 		const wishlists: Wishlist[] = await db
 			.update(wishlistTable)
-			.set({ isLocked: sql`NOT ${wishlistTable.isLocked}`, updatedAt: sql`NOW()` })
+			.set({ isLocked: sql`NOT ${wishlistTable.isLocked}` })
 			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 			.returning();
 
@@ -200,7 +200,7 @@ export class WishlistService {
 
 		const wishlists: Wishlist[] = await db
 			.update(wishlistTable)
-			.set({ name: newName, updatedAt: sql`NOW()` })
+			.set({ name: newName })
 			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
 			.returning();
 
@@ -274,5 +274,47 @@ export class WishlistService {
 		}
 
 		return wishlist[0];
+	}
+
+	/**
+	 * Saves the address for a wishlist.
+	 *
+	 * @param wishlistId - The ID of the wishlist to update
+	 * @param userId - The ID of the user who owns the wishlist
+	 * @param address - The address object containing street, city, state, and zip code
+	 * @returns The updated wishlist object
+	 * @throws {WishlistLockedError} If the wishlist is locked
+	 * @throws {WishlistNotFoundError} If the wishlist is not found or doesn't belong to the user
+	 */
+	static async saveWishlistAddress(
+		wishlistId: string,
+		userId: string,
+		address: {
+			streetAddress: string;
+			addressLine2: string;
+			city: string;
+			state: string;
+			zipCode: string;
+		}
+	): Promise<Wishlist> {
+		await ensureWishlistUnlocked(wishlistId);
+
+		const wishlists: Wishlist[] = await db
+			.update(wishlistTable)
+			.set({
+				streetAddress: address.streetAddress,
+				streetAddress2: address.addressLine2 || null,
+				city: address.city,
+				state: address.state,
+				zipCode: address.zipCode
+			})
+			.where(and(eq(wishlistTable.id, wishlistId), eq(wishlistTable.userId, userId)))
+			.returning();
+
+		if (wishlists.length === 0) {
+			throw new WishlistNotFoundError(wishlistId);
+		}
+
+		return wishlists[0];
 	}
 }

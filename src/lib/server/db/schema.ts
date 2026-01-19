@@ -70,14 +70,18 @@ export const wishlistTable = pgTable(
 			.notNull(),
 		name: varchar('name', { length: 255 }).notNull(),
 		streetAddress: varchar('street_address', { length: 255 }),
+		streetAddress2: varchar('street_address_2', { length: 255 }),
 		city: varchar('city', { length: 255 }),
 		state: varchar('state', { length: 255 }),
-		zipCode: integer('zip_code'),
+		zipCode: varchar('zip_code', { length: 20 }),
 		isLocked: boolean('is_locked').default(false).notNull(),
 		isDeleted: boolean('is_deleted').default(false).notNull(),
 		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
+		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
 	},
 	(table) => [
 		index('wishlist_to_user_id_index').on(table.userId),
@@ -104,7 +108,10 @@ export const wishlistItemTable = pgTable(
 		isDeleted: boolean('is_deleted').default(false).notNull(),
 		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
+		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date())
 	},
 	(table) => [
 		index('items_to_wishlist_id_index').on(table.wishlistId),
@@ -120,7 +127,10 @@ export const sharedWishlistTable = pgTable(
 			.references(() => wishlistTable.id)
 			.notNull(),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
-		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true, precision: 6 })
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date()),
 		expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 }),
 		durationType: durationTypeEnum('duration_type').notNull().default('THIRTY_DAYS')
 	},

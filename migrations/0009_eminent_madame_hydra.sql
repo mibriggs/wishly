@@ -1,0 +1,1 @@
+ALTER TABLE "wishlists" ADD COLUMN "street_address_2" varchar(255);

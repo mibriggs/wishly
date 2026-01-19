@@ -48,18 +48,22 @@ export const userTable = pgTable(
 	]
 );
 
-export const sessionTable = pgTable('sessions', {
-	id: varchar('id', { length: 255 }).primaryKey().unique(),
-	secretHash: u8bytea('secret_hash').notNull(),
-	userId: uuid('user_id')
-		.references(() => userTable.id)
-		.notNull(),
-	deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
-	createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
-	lastActivityAt: timestamp('last_activity_at', { withTimezone: true, precision: 6 })
-		.notNull()
-		.defaultNow()
-});
+export const sessionTable = pgTable(
+	'sessions',
+	{
+		id: varchar('id', { length: 255 }).primaryKey().unique(),
+		secretHash: u8bytea('secret_hash').notNull(),
+		userId: uuid('user_id')
+			.references(() => userTable.id)
+			.notNull(),
+		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
+		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
+		lastActivityAt: timestamp('last_activity_at', { withTimezone: true, precision: 6 })
+			.notNull()
+			.defaultNow()
+	},
+	(table) => [index('session_user_id_deleted_at_index').on(table.userId, table.deletedAt)]
+);
 
 export const wishlistTable = pgTable(
 	'wishlists',
@@ -86,7 +90,8 @@ export const wishlistTable = pgTable(
 	(table) => [
 		index('wishlist_to_user_id_index').on(table.userId),
 		index('wishlist_is_deleted_index').on(table.isDeleted),
-		index('wishlist_updated_at_index').on(table.updatedAt)
+		index('wishlist_updated_at_index').on(table.updatedAt),
+		index('wishlist_user_deleted_updated_index').on(table.userId, table.isDeleted, table.updatedAt)
 	]
 );
 
@@ -115,7 +120,9 @@ export const wishlistItemTable = pgTable(
 	},
 	(table) => [
 		index('items_to_wishlist_id_index').on(table.wishlistId),
-		index('items_is_deleted_index').on(table.isDeleted)
+		index('items_is_deleted_index').on(table.isDeleted),
+		index('items_wishlist_deleted_index').on(table.wishlistId, table.isDeleted),
+		index('items_id_wishlist_index').on(table.id, table.wishlistId)
 	]
 );
 
@@ -136,7 +143,8 @@ export const sharedWishlistTable = pgTable(
 	},
 	(table) => [
 		index('shared_to_wishlist_id_index').on(table.wishlistId),
-		index('expires_at_index').on(table.expiresAt)
+		index('expires_at_index').on(table.expiresAt),
+		index('shared_wishlist_expires_index').on(table.wishlistId, table.expiresAt)
 	]
 );
 

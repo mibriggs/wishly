@@ -16,8 +16,8 @@
 
 <label
 	class={twJoin(
-		'flex w-fit select-none items-center gap-1 rounded-md px-2 py-1 text-2xl',
-		!!issues?.length && 'border border-red-500 bg-red-100'
+		'flex w-fit select-none items-center gap-1 rounded-md border px-2 py-1 text-2xl',
+		issues?.length ? 'border-red-500 bg-red-100' : 'border-transparent'
 	)}
 >
 	$

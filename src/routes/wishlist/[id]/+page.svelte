@@ -19,7 +19,6 @@
 	import NewItemForm from '$lib/components/new-item-form.svelte';
 	import EditItemForm from '$lib/components/edit-item-form.svelte';
 	import { saveAddressCommand } from './address.remote';
-	import { tick } from 'svelte';
 
 	const wishlistData = getWishlistQuery();
 	const itemState = new WishlistItemStateClass();
@@ -33,14 +32,7 @@
 	};
 
 	const setFocusOnHeaderElement = () => {
-		// Hardcode getting the element, bypass all reactive state
-		// const el = document.querySelector('h1[contenteditable]');
-		// el?.setAttribute('contenteditable', 'true');
-		// el?.focus();
-		// itemState.isNameEditable = true;
-
 		itemState.isNameEditable = true;
-
 		itemState.wishlistNameElement?.focus();
 
 		queueMicrotask(() => {

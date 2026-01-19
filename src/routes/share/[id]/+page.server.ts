@@ -38,6 +38,13 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	return {
 		wishlistName: wishlist.name,
-		items
+		items,
+		address: {
+			streetAddress: wishlist.streetAddress,
+			streetAddress2: wishlist.streetAddress2,
+			city: wishlist.city,
+			state: wishlist.state,
+			zipCode: wishlist.zipCode
+		}
 	};
 };

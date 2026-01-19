@@ -92,6 +92,28 @@
 			</h1>
 		</div>
 
+		{#if data.address && (data.address.streetAddress || data.address.city || data.address.state || data.address.zipCode)}
+			<div class="mb-6">
+				<h2 class="mb-1 text-lg font-semibold text-neutral-600">Shipping Address</h2>
+				<div class="flex flex-col gap-1 text-neutral-700">
+					{#if data.address.streetAddress}
+						<p>{data.address.streetAddress}</p>
+					{/if}
+					{#if data.address.streetAddress2}
+						<p>{data.address.streetAddress2}</p>
+					{/if}
+					{#if data.address.city || data.address.state || data.address.zipCode}
+						<p>
+							{#if data.address.city}{data.address
+									.city}{/if}{#if data.address.city && data.address.state},{/if}
+							{#if data.address.state}{data.address.state}{/if}
+							{#if data.address.zipCode}{data.address.zipCode}{/if}
+						</p>
+					{/if}
+				</div>
+			</div>
+		{/if}
+
 		{#if data.items.length === 0}
 			<p class="italic text-neutral-500">No items added yet</p>
 		{:else}

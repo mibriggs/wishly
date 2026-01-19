@@ -32,25 +32,33 @@
 		itemState.isDeleteItemModalOpen = true;
 	};
 
-	const setFocusOnHeaderElement = async () => {
+	// const setFocusOnHeaderElement = async () => {
+	// 	itemState.isNameEditable = true;
+
+	// 	await tick();
+
+	// 	itemState.wishlistNameElement?.focus();
+
+	// 	setTimeout(() => {
+	// 		if (!itemState.wishlistNameElement) return;
+
+	// 		const range = document.createRange();
+	// 		range.selectNodeContents(itemState.wishlistNameElement);
+
+	// 		const selection = window.getSelection();
+
+	// 		if (!selection) return;
+	// 		selection.removeAllRanges();
+	// 		selection.addRange(range);
+	// 	}, 50);
+	// };
+	//
+	const setFocusOnHeaderElement = () => {
+		// Hardcode getting the element, bypass all reactive state
+		const el = document.querySelector('h1[contenteditable]');
+		el?.setAttribute('contenteditable', 'true');
+		el?.focus();
 		itemState.isNameEditable = true;
-
-		await tick();
-
-		itemState.wishlistNameElement?.focus();
-
-		setTimeout(() => {
-			if (!itemState.wishlistNameElement) return;
-
-			const range = document.createRange();
-			range.selectNodeContents(itemState.wishlistNameElement);
-
-			const selection = window.getSelection();
-
-			if (!selection) return;
-			selection.removeAllRanges();
-			selection.addRange(range);
-		}, 50);
 	};
 
 	const revertNameChange = () => {

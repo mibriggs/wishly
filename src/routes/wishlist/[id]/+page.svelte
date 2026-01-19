@@ -19,6 +19,7 @@
 	import NewItemForm from '$lib/components/new-item-form.svelte';
 	import EditItemForm from '$lib/components/edit-item-form.svelte';
 	import { saveAddressCommand } from './address.remote';
+	import { tick } from 'svelte';
 
 	const wishlistData = getWishlistQuery();
 	const itemState = new WishlistItemStateClass();
@@ -34,9 +35,11 @@
 	const setFocusOnHeaderElement = async () => {
 		itemState.isNameEditable = true;
 
-		requestAnimationFrame(() => {
-			itemState.wishlistNameElement?.focus();
+		await tick();
 
+		itemState.wishlistNameElement?.focus();
+
+		setTimeout(() => {
 			if (!itemState.wishlistNameElement) return;
 
 			const range = document.createRange();
@@ -47,7 +50,7 @@
 			if (!selection) return;
 			selection.removeAllRanges();
 			selection.addRange(range);
-		});
+		}, 50);
 	};
 
 	const revertNameChange = () => {

@@ -3,20 +3,15 @@
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import ClipboardCheck from 'lucide-svelte/icons/clipboard-check';
 	import type { PageProps } from './$types';
-	import type { Wishlist } from '$lib/server/db/schema';
-	import { enhance } from '$app/forms';
 	import Modal from '$lib/components/modal.svelte';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
 	import LoadingSpinner from '$lib/components/loading-spinner.svelte';
 	import { fade, scale } from 'svelte/transition';
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
-	import { createFormHandler } from '$lib/utils/form-handler';
-	import { z } from 'zod';
-	import { wishlistSchema } from '$lib/schema';
-	import { shareDurationEntries, type ShareDuration } from '$lib';
+	import { getErrorMessage, shareDurationEntries, type ShareDuration } from '$lib';
+	import { createWishlistCommand, deleteWishlistCommand, getWishlistsQuery } from './data.remote';
 
 	type ShareData = {
 		title: string;
@@ -26,17 +21,7 @@
 
 	type PageState = 'idle' | 'creating' | 'deleting' | 'loading';
 
-	class StreamedWishlist {
-		wishlists: Wishlist[] = $state([]);
-		nonDeletedWishlists: Wishlist[] = $derived(
-			this.wishlists.filter((loadedWishlist) => !loadedWishlist.isDeleted)
-		);
-		async streamWishlists() {
-			this.wishlists = await data.wishlists;
-		}
-	}
-
-	const wishlistsData = new StreamedWishlist();
+	const wishlistsData = getWishlistsQuery();
 
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
@@ -54,48 +39,48 @@
 	let shareDuration: ShareDuration = $state<ShareDuration>('THIRTY_DAYS');
 	let pageState: PageState = $state('loading');
 	let hasGuestCreatedList: boolean = $derived(
-		data.isGuestUser && wishlistsData.nonDeletedWishlists.length === 1
+		data.isGuestUser && wishlistsData.current?.wishlists.length === 1
 	);
 
-	const submitDeleteWishlist: SubmitFunction = createFormHandler<{
-		wishlist: Wishlist;
-	}>({
-		onStart: (formData) => {
-			formData.append('wishlistId', clickedWishlist);
-			pageState = 'deleting';
-		},
-		onSuccess: (data) => {
-			wishlistsData.nonDeletedWishlists
-				.filter((list) => list.id === data.wishlist.id)
-				.forEach((list) => (list.isDeleted = true));
-			pageState = 'idle';
-			isDeleteModalOpen = false;
-		},
-		onError: () => {
-			pageState = 'idle';
-			isDeleteModalOpen = false;
-		},
-		successSchema: z.object({ wishlist: wishlistSchema }),
-		loadingMessage: 'Deleting...',
-		successMessage: 'Wishlist deleted',
-		errorMessage: 'Failed to delete wishlist',
-		invalidateAll: false
-	});
+	const createNewWishlist = async () => {
+		pageState = 'creating';
+		const creatingId = toast.loading('Creating...');
 
-	const submitCreateWishlist: SubmitFunction = createFormHandler<{ wishlist: Wishlist }>({
-		onStart: () => (pageState = 'creating'),
-		onError: () => {
+		try {
+			await createWishlistCommand();
+			toast.success('New wishlist created!', { id: creatingId });
+		} catch (e: unknown) {
+			const errorMessage = getErrorMessage(e);
+			toast.error(errorMessage);
+			console.error(e, { id: creatingId });
+		} finally {
 			pageState = 'idle';
-		},
-		onSuccess: (data) => {
-			wishlistsData.wishlists.unshift(data.wishlist);
+		}
+	};
+	const deleteWishlist = async () => {
+		pageState = 'deleting';
+		const deletingId = toast.loading('Deleting...');
+
+		try {
+			await deleteWishlistCommand(clickedWishlist).updates(
+				getWishlistsQuery().withOverride((curr) => {
+					return {
+						...curr,
+						wishlists: curr.wishlists.filter((wishlist) => wishlist.id !== clickedWishlist)
+					};
+				})
+			);
+			deleteWishlistModal.close();
+			toast.success('Wishlist deleted!', { id: deletingId });
+		} catch (e: unknown) {
+			const errorMessage = getErrorMessage(e);
+			deleteWishlistModal.close();
+			toast.error(errorMessage, { id: deletingId });
+			console.error(e);
+		} finally {
 			pageState = 'idle';
-		},
-		successSchema: z.object({ wishlist: wishlistSchema }),
-		successMessage: 'New wishlist created!',
-		errorMessage: 'Could not create wishlist',
-		invalidateAll: false
-	});
+		}
+	};
 
 	const updateModalVisibility = (clickedId: string) => {
 		isDeleteModalOpen = true;
@@ -173,7 +158,7 @@
 	};
 
 	const updateWishlistLock = (id: string, isLocked: boolean, updatedAt: Date) => {
-		wishlistsData.wishlists.forEach((wishlist) => {
+		wishlistsData.current?.wishlists.forEach((wishlist) => {
 			if (wishlist.id === id) {
 				wishlist.isLocked = isLocked;
 				wishlist.updatedAt = updatedAt;
@@ -208,65 +193,56 @@
 	</div>
 {/snippet}
 
-{#await wishlistsData.streamWishlists()}
+{#if wishlistsData.loading}
 	<div out:fade onoutroend={() => (pageState = 'idle')}>
 		<ListSkeleton />
 	</div>
-{:then _}
-	{#if pageState !== 'loading'}
-		<main in:fade>
-			<ul
-				class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
-			>
-				{#each wishlistsData.nonDeletedWishlists as wishlist (wishlist.id)}
-					<li
-						in:scale
-						out:poofOut={{
-							duration: 600,
-							scaleTo: 0.5,
-							poofScale: 0.75,
-							poofColor: '#7890B4'
-						}}
-					>
-						<WishlistBlock
-							{wishlist}
-							loadedWishlists={wishlistsData.wishlists}
-							onLock={updateWishlistLock}
-							onShareClicked={openCopyModal}
-							onDeleteClicked={() => updateModalVisibility(wishlist.id)}
-						/>
-					</li>
-				{/each}
-
-				<li>
-					<form
-						method="POST"
-						action="?/createWishlist"
-						class="w-fit"
-						use:enhance={submitCreateWishlist}
-					>
-						<button
-							class="group w-fit disabled:cursor-not-allowed"
-							disabled={hasGuestCreatedList || pageState === 'creating'}
-						>
-							{#if pageState === 'creating'}
-								<div
-									class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
-								>
-									<LoadingSpinner class="h-20 w-20 fill-neutral-500" />
-								</div>
-							{:else}
-								{@render addMore()}
-							{/if}
-						</button>
-					</form>
+{:else if wishlistsData.current?.wishlists && pageState !== 'loading'}
+	<main in:fade>
+		<ul
+			class="grid grid-cols-1 items-center justify-center justify-items-center gap-y-4 p-10 md:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4"
+		>
+			{#each wishlistsData.current.wishlists as wishlist (wishlist.id)}
+				<li
+					in:scale
+					out:poofOut={{
+						duration: 600,
+						scaleTo: 0.5,
+						poofScale: 0.75,
+						poofColor: '#7890B4'
+					}}
+				>
+					<WishlistBlock
+						{wishlist}
+						onLock={updateWishlistLock}
+						onShareClicked={openCopyModal}
+						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
+					/>
 				</li>
-			</ul>
-		</main>
-	{/if}
-{:catch}
+			{/each}
+
+			<li>
+				<button
+					class="group w-fit disabled:cursor-not-allowed"
+					disabled={hasGuestCreatedList || pageState === 'creating'}
+					onclick={createNewWishlist}
+				>
+					{#if pageState === 'creating'}
+						<div
+							class="flex h-44 w-[312px] items-center justify-center rounded-lg border-2 border-solid border-neutral-500 bg-neutral-300 shadow-sm"
+						>
+							<LoadingSpinner class="h-20 w-20 fill-neutral-500" />
+						</div>
+					{:else}
+						{@render addMore()}
+					{/if}
+				</button>
+			</li>
+		</ul>
+	</main>
+{:else if wishlistsData.error}
 	<div>An error has occurred</div>
-{/await}
+{/if}
 
 <Modal
 	id="delete-wishlist-modal"
@@ -296,14 +272,13 @@
 				class="transform select-none rounded-md border-2 border-black px-4 py-2 shadow-lg transition duration-100 active:scale-90"
 				onclick={() => deleteWishlistModal.close()}>Cancel</button
 			>
-			<form method="POST" action="?/deleteWishlist" use:enhance={submitDeleteWishlist}>
-				<button
-					class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
-					disabled={pageState === 'deleting'}
-				>
-					Delete
-				</button>
-			</form>
+			<button
+				class="transform select-none rounded-md border-2 border-red-500 bg-red-100 px-4 py-2 text-red-500 shadow-lg transition duration-100 active:scale-90"
+				disabled={pageState === 'deleting'}
+				onclick={deleteWishlist}
+			>
+				Delete
+			</button>
 		</div>
 	</div>
 </Modal>

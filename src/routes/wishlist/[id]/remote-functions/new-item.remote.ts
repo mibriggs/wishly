@@ -39,6 +39,7 @@ export const createItemForm = form(
 				errorMessage = e.message;
 			}
 
+			console.error(e);
 			error(errorCode, { message: errorMessage });
 		}
 	}

@@ -41,6 +41,7 @@ export const saveAddressCommand = command(
 				errorMessage = e.message;
 			}
 
+			console.error(e);
 			error(errorCode, { message: errorMessage });
 		}
 	}

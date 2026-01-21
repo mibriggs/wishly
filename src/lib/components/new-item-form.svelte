@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { newItemSchema, type CreateNewItemFields } from '$lib/schema';
 	import toast from 'svelte-french-toast';
-	import { createItemForm } from '../../routes/wishlist/[id]/new-item.remote';
+	import { createItemForm } from '../../routes/wishlist/[id]/remote-functions/new-item.remote';
 	import ErrorMessage from './error-message.svelte';
 	import ItemCost from './item-cost.svelte';
 	import ItemName from './item-name.svelte';
@@ -9,7 +9,7 @@
 	import NumberStepper from './number-stepper.svelte';
 	import type { WishlistItem } from '$lib/server/db/schema';
 	import { getErrorMessage, shortIdToUuid } from '$lib';
-	import { getWishlistQuery } from '../../routes/wishlist/[id]/get-wishlist.remote';
+	import { getWishlistQuery } from '../../routes/wishlist/[id]/remote-functions/get-wishlist.remote';
 
 	interface Props {
 		createPageState: () => void;

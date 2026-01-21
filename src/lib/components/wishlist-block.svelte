@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
-	import { uuidToShortId, type ShareDuration } from '$lib';
-	import { durationSchema, wishlistSchema } from '$lib/schema';
+	import { getErrorMessage, uuidToShortId, type ShareDuration } from '$lib';
+	import { durationSchema } from '$lib/schema';
 	import { z } from 'zod';
 	import type { Wishlist } from '$lib/server/db/schema';
 	import type { SubmitFunction } from '@sveltejs/kit';
@@ -11,10 +11,11 @@
 	import Share from 'lucide-svelte/icons/share';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import LoadingSpinner from './loading-spinner.svelte';
+	import { updateLockCommand } from '../../routes/data.remote';
+	import toast from 'svelte-french-toast';
 
 	interface Props {
 		wishlist: Wishlist;
-		loadedWishlists: Wishlist[];
 		onDeleteClicked: () => void;
 		onShareClicked: (link: string, duration: ShareDuration, shareId: string | null) => void;
 		onLock: (id: string, isLocked: boolean, updatedAt: Date) => void;
@@ -26,29 +27,23 @@
 		currentDuration: durationSchema
 	});
 
-	let { wishlist, loadedWishlists, onDeleteClicked, onShareClicked, onLock }: Props = $props();
+	let { wishlist, onDeleteClicked, onShareClicked, onLock }: Props = $props();
 	let locking: boolean = $state(false);
 	let sharing: boolean = $state(false);
 
-	const submitLockWishlist: SubmitFunction = ({ formData }) => {
+	const updateLock = async () => {
 		locking = true;
-		formData.append('wishlistId', wishlist.id);
-
-		return async ({ result, update }) => {
-			if (result.type === 'success') {
-				const resultData = result.data;
-				if (resultData) {
-					const updatedWishlist = wishlistSchema.parse(resultData['wishlist']);
-					loadedWishlists.forEach((loadedWishlist) => {
-						if (loadedWishlist.id === updatedWishlist.id) {
-							onLock(loadedWishlist.id, updatedWishlist.isLocked, updatedWishlist.updatedAt);
-						}
-					});
-				}
-			}
-			await update({ invalidateAll: false });
+		try {
+			// Don't want to refresh the query here so lists don't jump around as they're updated
+			await updateLockCommand(wishlist.id);
+			onLock(wishlist.id, !wishlist.isLocked, new Date());
+		} catch (e: unknown) {
+			const errorMessage = getErrorMessage(e);
+			toast.error(errorMessage);
+			console.error(e);
+		} finally {
 			locking = false;
-		};
+		}
 	};
 
 	const submitShareWishlist: SubmitFunction = ({ formData }) => {
@@ -85,21 +80,20 @@
 		>
 			Expand
 		</a>
-		<form method="POST" class="w-fit" use:enhance={submitLockWishlist}>
-			<button
-				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-				formaction="?/lockWishlist"
-				disabled={locking}
-			>
-				{#if locking}
-					<LoadingSpinner class="h-5 w-5 fill-blue-500" />
-				{:else if wishlist.isLocked}
-					<Lock size="20" />
-				{:else}
-					<LockOpen size="20" />
-				{/if}
-			</button>
-		</form>
+
+		<button
+			class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+			disabled={locking}
+			onclick={updateLock}
+		>
+			{#if locking}
+				<LoadingSpinner class="h-5 w-5 fill-blue-500" />
+			{:else if wishlist.isLocked}
+				<Lock size="20" />
+			{:else}
+				<LockOpen size="20" />
+			{/if}
+		</button>
 
 		<form method="POST" class="w-fit" use:enhance={submitShareWishlist}>
 			<button

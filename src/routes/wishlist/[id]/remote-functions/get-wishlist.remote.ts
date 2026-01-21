@@ -28,6 +28,6 @@ export const getWishlistQuery = query(async () => {
 	} catch (err: unknown) {
 		if (isHttpError(err)) throw err;
 		console.error('Database error:', err);
-		return error(500, 'Failed to load wishlist');
+		error(500, 'Failed to load wishlist');
 	}
 });

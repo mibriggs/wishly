@@ -24,6 +24,7 @@ export const deleteItemCommand = command(
 				errorMessage = e.message;
 			}
 
+			console.error(e);
 			error(errorCode, { message: errorMessage });
 		}
 	}

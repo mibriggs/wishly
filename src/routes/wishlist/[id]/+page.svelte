@@ -5,20 +5,20 @@
 	import Modal from '$lib/components/modal.svelte';
 	import toast from 'svelte-french-toast';
 	import { fade, scale, slide } from 'svelte/transition';
-	import { getWishlistQuery } from './get-wishlist.remote';
+	import { getWishlistQuery } from './remote-functions/get-wishlist.remote';
 	import { WishlistItemStateClass } from './item-state.svelte';
 	import { Check, Plus, SquarePen, TriangleAlert, X } from 'lucide-svelte';
-	import { deleteItemCommand } from './delete-item.remote';
+	import { deleteItemCommand } from './remote-functions/delete-item.remote';
 	import { getErrorMessage } from '$lib';
-	import { renameWishlistCommand } from './rename-wishlist.remote';
+	import { renameWishlistCommand } from './remote-functions/rename-wishlist.remote';
 	import type { WishlistItem } from '$lib/server/db/schema';
-	import { createItemForm } from './new-item.remote';
+	import { createItemForm } from './remote-functions/new-item.remote';
 	import { type AddressData, type PageState } from '$lib/schema';
 	import { page } from '$app/state';
-	import { editItemForm } from './edit-item.remote';
+	import { editItemForm } from './remote-functions/edit-item.remote';
 	import NewItemForm from '$lib/components/new-item-form.svelte';
 	import EditItemForm from '$lib/components/edit-item-form.svelte';
-	import { saveAddressCommand } from './address.remote';
+	import { saveAddressCommand } from './remote-functions/address.remote';
 
 	const wishlistData = getWishlistQuery();
 	const itemState = new WishlistItemStateClass();
@@ -139,8 +139,8 @@
 			toast.success('Address Saved!', { id: loadingId });
 		} catch (e: unknown) {
 			const errorMessage = getErrorMessage(e);
-			toast.error(errorMessage);
-			console.error(e, { id: loadingId });
+			toast.error(errorMessage, { id: loadingId });
+			console.error(e);
 			addressFormElement?.reset();
 		} finally {
 			pageState = 'idle';

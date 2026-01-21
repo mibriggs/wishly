@@ -7,8 +7,8 @@
 	import ItemUrl from './item-url.svelte';
 	import NumberStepper from './number-stepper.svelte';
 	import { getErrorMessage } from '$lib';
-	import { getWishlistQuery } from '../../routes/wishlist/[id]/get-wishlist.remote';
-	import { editItemForm } from '../../routes/wishlist/[id]/edit-item.remote';
+	import { getWishlistQuery } from '../../routes/wishlist/[id]/remote-functions/get-wishlist.remote';
+	import { editItemForm } from '../../routes/wishlist/[id]/remote-functions/edit-item.remote';
 
 	interface Props {
 		updatePageState: () => void;

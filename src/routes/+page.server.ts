@@ -1,13 +1,8 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { WishlistService } from '$lib/server/db/services/wishlist.service';
 import type { Actions, PageServerLoad } from './$types';
 import { SharedWishlistService } from '$lib/server/db/services/shared.service';
 import { uuidToShortId } from '$lib/server';
 import type { ShareDuration } from '$lib';
-import { WishlistNotFoundError } from '$lib/errors/wishlist/wishlist-not-found';
-import { WishlistNotCreatedError } from '$lib/errors/wishlist/wishlist-not-created';
-import { UserNotFoundError } from '$lib/errors/user/user-not-found';
-import { WishlistLockedError } from '$lib/errors/wishlist/locked-error';
 
 export const load: PageServerLoad = ({ locals }) => {
 	// check if there's a user
@@ -15,71 +10,9 @@ export const load: PageServerLoad = ({ locals }) => {
 	if (!locals.user) {
 		throw redirect(303, '/auth/sign-up');
 	}
-
-	console.log('User is signed in');
-
-	return {
-		wishlists: WishlistService.findByUserId(locals.user.id),
-		isGuestUser: locals.user.isGuest
-	};
 };
 
 export const actions = {
-	createWishlist: async ({ locals }) => {
-		try {
-			const newWishlist = await WishlistService.createWishlist(locals.user.id);
-			return { wishlist: newWishlist };
-		} catch (e: unknown) {
-			if (e instanceof UserNotFoundError) {
-				return fail(404, { errorCause: e.message });
-			} else if (e instanceof WishlistNotCreatedError) {
-				return fail(422, { errorCause: e.message });
-			}
-			console.error('Error in form action:', e);
-			return error(500);
-		}
-	},
-
-	deleteWishlist: async ({ request, locals }) => {
-		const formData = await request.formData();
-		const wishlistId = formData.get('wishlistId');
-
-		if (wishlistId) {
-			try {
-				return {
-					wishlist: await WishlistService.deleteWishlist(wishlistId.toString(), locals.user.id)
-				};
-			} catch (e: unknown) {
-				if (e instanceof WishlistNotFoundError) {
-					return fail(404, { errorCause: e.message });
-				} else if (e instanceof WishlistLockedError) {
-					return fail(423, { errorCause: e.message });
-				}
-				return error(500);
-			}
-		}
-		return fail(400, { errorCause: 'Wishlist ID is null' });
-	},
-
-	lockWishlist: async ({ request, locals }) => {
-		const formData = await request.formData();
-		const wishlistId = formData.get('wishlistId');
-
-		if (wishlistId && wishlistId.toString().trim().length > 0) {
-			try {
-				return {
-					wishlist: await WishlistService.updateWishlistLock(wishlistId.toString(), locals.user.id)
-				};
-			} catch (e: unknown) {
-				if (e instanceof WishlistNotFoundError) {
-					return fail(404, { errorCause: e.message });
-				}
-				return error(500);
-			}
-		}
-		return fail(400, { errorCause: 'Wishlist ID is null' });
-	},
-
 	shareWishlist: async ({ request }) => {
 		const formData = await request.formData();
 		const wishlistId = formData.get('wishlistId');

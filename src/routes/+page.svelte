@@ -162,19 +162,6 @@
 			}
 		});
 	};
-
-	const updateShareDuration = async () => {
-		// Default to 30 days? If user picks something besides that update afterwards
-		await fetch(`/api/v1/wishlist/shared/${lastSharedId}`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				newDuration: shareDuration
-			})
-		});
-	};
 </script>
 
 {#snippet addMore()}

@@ -2,7 +2,6 @@
 	import Plus from 'lucide-svelte/icons/plus';
 	import TriangleAlert from 'lucide-svelte/icons/triangle-alert';
 	import ClipboardCheck from 'lucide-svelte/icons/clipboard-check';
-	import type { PageProps } from './$types';
 	import Modal from '$lib/components/modal.svelte';
 	import toast from 'svelte-french-toast';
 	import WishlistBlock from '$lib/components/wishlist-block.svelte';
@@ -11,7 +10,12 @@
 	import { poofOut } from '$lib/custom-transitions/poof-out';
 	import ListSkeleton from '$lib/components/list-skeleton.svelte';
 	import { getErrorMessage, shareDurationEntries, type ShareDuration } from '$lib';
-	import { createWishlistCommand, deleteWishlistCommand, getWishlistsQuery } from './data.remote';
+	import {
+		createWishlistCommand,
+		deleteWishlistCommand,
+		getWishlistsQuery,
+		updateShareDurationCommand
+	} from './data.remote';
 
 	type ShareData = {
 		title: string;
@@ -26,8 +30,6 @@
 	let deleteWishlistModal: Modal;
 	let copyWishlistModal: Modal;
 
-	let { data }: PageProps = $props();
-
 	let dropdownElement: HTMLSelectElement | undefined = $state();
 	let isDeleteModalOpen: boolean = $state(false);
 	let isCopyModalOpen: boolean = $state(false);
@@ -39,7 +41,7 @@
 	let shareDuration: ShareDuration = $state<ShareDuration>('THIRTY_DAYS');
 	let pageState: PageState = $state('loading');
 	let hasGuestCreatedList: boolean = $derived(
-		data.isGuestUser && wishlistsData.current?.wishlists.length === 1
+		!!wishlistsData.current?.isGuestUser && wishlistsData.current?.wishlists.length === 1
 	);
 
 	const createNewWishlist = async () => {
@@ -51,8 +53,8 @@
 			toast.success('New wishlist created!', { id: creatingId });
 		} catch (e: unknown) {
 			const errorMessage = getErrorMessage(e);
-			toast.error(errorMessage);
-			console.error(e, { id: creatingId });
+			toast.error(errorMessage, { id: creatingId });
+			console.error(e);
 		} finally {
 			pageState = 'idle';
 		}
@@ -82,11 +84,6 @@
 		}
 	};
 
-	const updateModalVisibility = (clickedId: string) => {
-		isDeleteModalOpen = true;
-		clickedWishlist = clickedId;
-	};
-
 	const openCopyModal = (link: string, duration: ShareDuration, shareId: string | null) => {
 		shareDuration = duration;
 		isCopyModalOpen = true;
@@ -109,7 +106,7 @@
 			}
 			await shareLinkToGuest(shareData);
 			copyWishlistModal.close();
-			updateShareDuration();
+			updateShareDurationCommand({ shareId: lastSharedId, duration: shareDuration });
 		} catch (err: unknown) {
 			if (err instanceof Error && err.name === 'AbortError') {
 				toast.error('Share cancelled');
@@ -150,16 +147,16 @@
 		const isCopied = await copyText(shareLink);
 		if (isCopied) {
 			toast.success('Link copied to clipboard!');
-			updateShareDuration();
+			updateShareDurationCommand({ shareId: lastSharedId, duration: shareDuration });
 		} else {
 			toast.error('Failed to copy to clipboard, try again');
 		}
 		copyWishlistModal.close();
 	};
 
-	const updateWishlistLock = (id: string, isLocked: boolean, updatedAt: Date) => {
+	const updateWishlistLock = (isLocked: boolean, updatedAt: Date) => {
 		wishlistsData.current?.wishlists.forEach((wishlist) => {
-			if (wishlist.id === id) {
+			if (wishlist.id === clickedWishlist) {
 				wishlist.isLocked = isLocked;
 				wishlist.updatedAt = updatedAt;
 			}
@@ -214,9 +211,10 @@
 				>
 					<WishlistBlock
 						{wishlist}
-						onLock={updateWishlistLock}
+						onLockClicked={updateWishlistLock}
 						onShareClicked={openCopyModal}
-						onDeleteClicked={() => updateModalVisibility(wishlist.id)}
+						onDeleteClicked={() => (isDeleteModalOpen = true)}
+						onclick={(wishlistId) => (clickedWishlist = wishlistId)}
 					/>
 				</li>
 			{/each}

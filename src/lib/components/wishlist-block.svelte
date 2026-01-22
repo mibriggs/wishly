@@ -1,33 +1,31 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import { getErrorMessage, uuidToShortId, type ShareDuration } from '$lib';
-	import { durationSchema } from '$lib/schema';
-	import { z } from 'zod';
 	import type { Wishlist } from '$lib/server/db/schema';
-	import type { SubmitFunction } from '@sveltejs/kit';
 	import Lock from 'lucide-svelte/icons/lock';
 	import LockOpen from 'lucide-svelte/icons/lock-open';
 	import Share from 'lucide-svelte/icons/share';
 	import Trash2 from 'lucide-svelte/icons/trash-2';
 	import LoadingSpinner from './loading-spinner.svelte';
-	import { updateLockCommand } from '../../routes/data.remote';
+	import { shareWishlistCommand, updateLockCommand } from '../../routes/data.remote';
 	import toast from 'svelte-french-toast';
 
 	interface Props {
 		wishlist: Wishlist;
 		onDeleteClicked: () => void;
 		onShareClicked: (link: string, duration: ShareDuration, shareId: string | null) => void;
-		onLock: (id: string, isLocked: boolean, updatedAt: Date) => void;
+		onLockClicked: (isLocked: boolean, updatedAt: Date) => void;
+		onclick?: (id: string) => void;
 	}
 
-	const sharedWishlistData = z.object({
-		link: z.string(),
-		shareId: z.string().nullable(),
-		currentDuration: durationSchema
-	});
+	let {
+		wishlist,
+		onDeleteClicked,
+		onShareClicked,
+		onLockClicked,
+		onclick: onClick = undefined
+	}: Props = $props();
 
-	let { wishlist, onDeleteClicked, onShareClicked, onLock }: Props = $props();
 	let locking: boolean = $state(false);
 	let sharing: boolean = $state(false);
 
@@ -36,7 +34,7 @@
 		try {
 			// Don't want to refresh the query here so lists don't jump around as they're updated
 			await updateLockCommand(wishlist.id);
-			onLock(wishlist.id, !wishlist.isLocked, new Date());
+			onLockClicked(!wishlist.isLocked, new Date());
 		} catch (e: unknown) {
 			const errorMessage = getErrorMessage(e);
 			toast.error(errorMessage);
@@ -46,23 +44,16 @@
 		}
 	};
 
-	const submitShareWishlist: SubmitFunction = ({ formData }) => {
-		formData.append('wishlistId', wishlist.id);
+	const shareWishlist = async () => {
 		sharing = true;
-
-		return async ({ result, update }) => {
-			if (result.type === 'success') {
-				const maybeData = sharedWishlistData.safeParse(result.data);
-				if (maybeData.success) {
-					const link = maybeData.data.link;
-					const duration = maybeData.data.currentDuration;
-					const shareId = maybeData.data.shareId;
-					onShareClicked(`${page.url.href}share/${link}`, duration, shareId);
-				}
-			}
+		try {
+			const data = await shareWishlistCommand(wishlist.id);
+			onShareClicked(`${page.url.href}share/${data.link}`, data.currentDuration, data.shareId);
+		} catch (e: unknown) {
+			console.error(e);
+		} finally {
 			sharing = false;
-			await update({ invalidateAll: false });
-		};
+		}
 	};
 </script>
 
@@ -84,7 +75,12 @@
 		<button
 			class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
 			disabled={locking}
-			onclick={updateLock}
+			onclick={() => {
+				if (onClick) {
+					onClick(wishlist.id);
+				}
+				updateLock();
+			}}
 		>
 			{#if locking}
 				<LoadingSpinner class="h-5 w-5 fill-blue-500" />
@@ -95,24 +91,33 @@
 			{/if}
 		</button>
 
-		<form method="POST" class="w-fit" use:enhance={submitShareWishlist}>
-			<button
-				class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
-				formaction="?/shareWishlist"
-				disabled={sharing}
-			>
-				{#if sharing}
-					<LoadingSpinner class="h-5 w-5 fill-blue-500" />
-				{:else}
-					<Share size="20" />
-				{/if}
-			</button>
-		</form>
+		<button
+			class="transform select-none rounded-md border-2 px-2 py-1 shadow-sm transition duration-100 active:scale-90"
+			formaction="?/shareWishlist"
+			disabled={sharing}
+			onclick={() => {
+				if (onClick) {
+					onClick(wishlist.id);
+				}
+				shareWishlist();
+			}}
+		>
+			{#if sharing}
+				<LoadingSpinner class="h-5 w-5 fill-blue-500" />
+			{:else}
+				<Share size="20" />
+			{/if}
+		</button>
 
 		<button
 			class="transform select-none rounded-md border-2 border-red-600 bg-red-500 px-2 py-1 text-white shadow-sm transition duration-100 active:scale-90 active:opacity-85 disabled:cursor-not-allowed disabled:border-neutral-500 disabled:bg-neutral-400 disabled:active:scale-100 disabled:active:opacity-100"
 			type="button"
-			onclick={onDeleteClicked}
+			onclick={() => {
+				if (onClick) {
+					onClick(wishlist.id);
+				}
+				onDeleteClicked();
+			}}
 			disabled={wishlist.isLocked}
 		>
 			<Trash2 size="20" />

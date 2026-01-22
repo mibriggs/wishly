@@ -103,16 +103,6 @@ export const discordUserSchema = z.object({
 	username: z.string()
 });
 
-export const durationSchema = z.enum([
-	'ONE_HOUR',
-	'ONE_DAY',
-	'SEVEN_DAYS',
-	'FOURTEEN_DAYS',
-	'THIRTY_DAYS',
-	'NINETY_DAYS',
-	'NEVER'
-]);
-
 export const httpErrorSchema = z.object({
 	status: z.number(),
 	body: z.object({

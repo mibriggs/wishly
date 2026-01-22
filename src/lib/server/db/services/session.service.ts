@@ -59,7 +59,7 @@ export class SessionService {
 	}
 
 	/**
-	 * Soft deletes a session by setting its deletedAt timestamp.
+	 * Hard deletes a session.
 	 * This is an idempotent operation - if the session doesn't exist, returns null.
 	 *
 	 * @param sessionId - The unique identifier of the session to delete
@@ -67,8 +67,7 @@ export class SessionService {
 	 */
 	static async deleteSession(sessionId: string): Promise<Session | null> {
 		const sessions: Session[] = await db
-			.update(sessionTable)
-			.set({ deletedAt: sql`NOW()` })
+			.delete(sessionTable)
 			.where(eq(sessionTable.id, sessionId))
 			.returning();
 

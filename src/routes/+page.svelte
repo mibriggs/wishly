@@ -62,6 +62,7 @@
 		const deletingId = toast.loading('Deleting...');
 
 		try {
+			deleteWishlistModal.close();
 			await deleteWishlistCommand(clickedWishlist).updates(
 				getWishlistsQuery().withOverride((curr) => {
 					return {
@@ -70,7 +71,6 @@
 					};
 				})
 			);
-			deleteWishlistModal.close();
 			toast.success('Wishlist deleted!', { id: deletingId });
 		} catch (e: unknown) {
 			const errorMessage = getErrorMessage(e);

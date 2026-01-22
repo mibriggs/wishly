@@ -52,6 +52,8 @@
 			closeModal();
 			toast.success('Item updated!', { id: creatingId });
 		} catch (e: unknown) {
+			closeModal();
+
 			const errorMessage = getErrorMessage(e);
 			toast.error(errorMessage, { id: creatingId });
 			console.error(errorMessage);

@@ -59,12 +59,24 @@
 			closeModal();
 			toast.success('Item added!', { id: creatingId });
 		} catch (e: unknown) {
+			resetForm();
+			closeModal();
+
 			const errorMessage = getErrorMessage(e);
 			toast.error(errorMessage, { id: creatingId });
 			console.error(errorMessage);
 		} finally {
 			idlePageState();
 		}
+	};
+
+	const resetForm = () => {
+		createItemForm.fields.set({
+			itemName: '',
+			itemUrl: '',
+			itemQuantity: 1,
+			itemCost: ''
+		});
 	};
 </script>
 

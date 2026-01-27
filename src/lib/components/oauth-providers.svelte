@@ -14,12 +14,14 @@
 		<p>Discord</p>
 	</a>
 
-	<button
+	<a
 		class="flex transform items-center justify-center gap-1 rounded-md border-2 px-12 py-1 shadow-sm transition duration-100 active:scale-90 active:opacity-85"
+		href="/api/v1/auth/sign-in/google"
+		rel="external"
 	>
 		<img src={googleLogo} alt="google logo" width="16" />
 		<p>Google</p>
-	</button>
+	</a>
 
 	<a
 		class="flex transform items-center justify-center gap-1 rounded-md border-2 px-12 py-1 shadow-sm transition duration-100 active:scale-90 active:opacity-85"

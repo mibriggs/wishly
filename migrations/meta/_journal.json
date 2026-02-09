@@ -92,6 +92,48 @@
 			"when": 1768803999177,
 			"tag": "0012_tricky_bloodstorm",
 			"breakpoints": true
+		},
+		{
+			"idx": 13,
+			"version": "7",
+			"when": 1770606805088,
+			"tag": "0013_legal_lady_deathstrike",
+			"breakpoints": true
+		},
+		{
+			"idx": 14,
+			"version": "7",
+			"when": 1770607003456,
+			"tag": "0014_migrate-username-fields",
+			"breakpoints": true
+		},
+		{
+			"idx": 15,
+			"version": "7",
+			"when": 1770607887226,
+			"tag": "0015_strong_blue_blade",
+			"breakpoints": true
+		},
+		{
+			"idx": 16,
+			"version": "7",
+			"when": 1770611699355,
+			"tag": "0016_gorgeous_may_parker",
+			"breakpoints": true
+		},
+		{
+			"idx": 17,
+			"version": "7",
+			"when": 1770611721138,
+			"tag": "0017_migrate-oauth-ids",
+			"breakpoints": true
+		},
+		{
+			"idx": 18,
+			"version": "7",
+			"when": 1770612322795,
+			"tag": "0018_simple_proemial_gods",
+			"breakpoints": true
 		}
 	]
 }

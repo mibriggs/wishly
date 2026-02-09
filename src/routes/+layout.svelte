@@ -52,10 +52,7 @@
 			>
 				<CircleUser size={20} />
 				<span>
-					{data.user.githubUsername ??
-						data.user.discordUsername ??
-						data.user.googleUsername ??
-						'user'}
+					{data.user.username ?? 'user'}
 				</span>
 			</button>
 

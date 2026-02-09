@@ -55,7 +55,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	const discordUserId = discordUser.id;
 	const discordUsername = discordUser.username;
 
-	const existingUser = await UserService.findByOauthId(discordUserId, 'DISCORD');
+	const existingUser = await UserService.findByOauthId(discordUserId);
 
 	if (existingUser) {
 		return createSessionOrThrow(existingUser.id, cookies);
@@ -66,8 +66,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		const fullUser = await UserService.makeGuestUserOAuthUser(
 			guestId,
 			discordUserId,
-			discordUsername,
-			'DISCORD'
+			discordUsername
 		);
 
 		if (fullUser) {
@@ -81,7 +80,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			status: 400
 		});
 	} else {
-		const newUser = await UserService.createOauthUser(discordUserId, discordUsername, 'DISCORD');
+		const newUser = await UserService.createOauthUser(discordUserId, discordUsername);
 
 		if (newUser) {
 			return createSessionOrThrow(newUser.id, cookies);

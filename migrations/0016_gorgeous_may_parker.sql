@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "oauth_id" varchar(255);

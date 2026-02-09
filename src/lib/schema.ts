@@ -94,7 +94,7 @@ export const deleteItemSchema = z.object({
 });
 
 export const githubUserSchema = z.object({
-	id: z.number(),
+	id: z.coerce.string(),
 	login: z.string()
 });
 

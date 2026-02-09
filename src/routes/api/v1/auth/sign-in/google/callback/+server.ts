@@ -15,7 +15,7 @@ const googleClaimsSchema = z.object({
 	name: z.string(),
 	picture: z.string(),
 	given_name: z.string(),
-	family_name: z.string(),
+	family_name: z.string().optional(),
 	iat: z.number(),
 	exp: z.number()
 });
@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const googleUserId = maybeClaims.data.sub;
 	const username = maybeClaims.data.name;
 
-	const existingUser = await UserService.findByOauthId(googleUserId, 'GOOGLE');
+	const existingUser = await UserService.findByOauthId(googleUserId);
 
 	if (existingUser) {
 		return createSessionOrThrow(existingUser.id, cookies);
@@ -52,12 +52,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const guestId = cookies.get('wantify_guest');
 
 	if (guestId) {
-		const fullUser = await UserService.makeGuestUserOAuthUser(
-			guestId,
-			googleUserId,
-			username,
-			'GOOGLE'
-		);
+		const fullUser = await UserService.makeGuestUserOAuthUser(guestId, googleUserId, username);
 
 		if (fullUser) {
 			cookies.delete('wantify_guest', {
@@ -70,7 +65,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			status: 400
 		});
 	} else {
-		const newUser = await UserService.createOauthUser(googleUserId, username, 'GOOGLE');
+		const newUser = await UserService.createOauthUser(googleUserId, username);
 
 		if (newUser) {
 			return createSessionOrThrow(newUser.id, cookies);

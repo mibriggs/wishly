@@ -6,6 +6,7 @@ import {
 	integer,
 	pgEnum,
 	pgTable,
+	text,
 	timestamp,
 	uuid,
 	varchar
@@ -28,24 +29,20 @@ export const userTable = pgTable(
 		id: uuid('id').defaultRandom().primaryKey().unique(),
 		guestId: uuid('guest_id').unique(),
 		isGuest: boolean('is_guest').default(false).notNull(),
-		githubId: integer('github_id'),
-		githubUsername: varchar('github_username', { length: 255 }),
-		googleId: varchar('google_id', { length: 255 }),
-		googleUsername: varchar('google_username', { length: 255 }),
-		discordId: varchar('discord_id', { length: 255 }),
-		discordUsername: varchar('discord_username', { length: 255 }),
+		oauthId: varchar('oauth_id', { length: 255 }),
+		username: varchar('username', { length: 255 }),
 		email: varchar('email', { length: 255 }),
-		name: varchar('name', { length: 255 }),
+		passwordHash: text('password_hash'),
+		emailVerified: boolean('email_verified').default(false).notNull(),
+		totpKey: u8bytea('totp_key'),
+		recoveryCode: u8bytea('recovery_code'),
 		streetAddress: varchar('street_address', { length: 255 }),
 		city: varchar('city', { length: 255 }),
 		state: varchar('state', { length: 255 }),
 		zipCode: integer('zip_code'),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow()
 	},
-	(table) => [
-		index('discord_id_index').on(table.discordId),
-		index('github_id_index').on(table.githubId)
-	]
+	(table) => [index('oauth_id_index').on(table.oauthId), index('email_index').on(table.email)]
 );
 
 export const sessionTable = pgTable(
@@ -56,6 +53,7 @@ export const sessionTable = pgTable(
 		userId: uuid('user_id')
 			.references(() => userTable.id)
 			.notNull(),
+		twoFactorVerified: boolean('two_factor_verified').default(false).notNull(),
 		deletedAt: timestamp('deleted_at', { withTimezone: true, precision: 6 }),
 		createdAt: timestamp('created_at', { withTimezone: true, precision: 6 }).notNull().defaultNow(),
 		lastActivityAt: timestamp('last_activity_at', { withTimezone: true, precision: 6 })

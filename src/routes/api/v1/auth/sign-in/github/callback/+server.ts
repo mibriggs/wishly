@@ -54,7 +54,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 	const githubUserId = githubUser.id;
 	const githubUsername = githubUser.login;
 
-	const existingUser = await UserService.findByOauthId(githubUserId, 'GITHUB');
+	const existingUser = await UserService.findByOauthId(githubUserId);
 
 	if (existingUser) {
 		return createSessionOrThrow(existingUser.id, cookies);
@@ -65,8 +65,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		const fullUser = await UserService.makeGuestUserOAuthUser(
 			guestId,
 			githubUserId,
-			githubUsername,
-			'GITHUB'
+			githubUsername
 		);
 
 		if (fullUser) {
@@ -80,7 +79,7 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			status: 400
 		});
 	} else {
-		const newUser = await UserService.createOauthUser(githubUserId, githubUsername, 'GITHUB');
+		const newUser = await UserService.createOauthUser(githubUserId, githubUsername);
 
 		if (newUser) {
 			return createSessionOrThrow(newUser.id, cookies);

@@ -15,19 +15,18 @@
 	>
 		<tbody>
 			<tr>
-				<td style="padding: 40px 20px;">
-					<!-- Add white background wrapper -->
+				<td align="center" style="padding: 40px 20px;">
 					<table
 						role="presentation"
 						cellspacing="0"
 						cellpadding="0"
 						border="0"
 						width="100%"
-						style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px;"
+						style="max-width: 600px; background-color: #ffffff; border-radius: 8px;"
 					>
 						<tbody>
 							<tr>
-								<td style="padding: 40px 30px;">
+								<td style="padding: 40px 30px;" align="center">
 									<table
 										role="presentation"
 										cellspacing="0"

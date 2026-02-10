@@ -59,5 +59,24 @@ const generateVerificationEmail = (username: string, code: string) => {
 			code
 		}
 	});
-	return body;
+	return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<title>Verify your email</title>
+<style>
+	html, body { margin: 0 auto !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
+	* { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+	table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+	table { border-spacing: 0 !important; border-collapse: collapse !important; margin: 0 auto !important; }
+	div[style*="margin: 16px 0"] { margin: 0 !important; }
+</style>
+</head>
+<body style="margin: 0; padding: 0; width: 100%; word-spacing: normal; background-color: #d4d0c8;">
+${body}
+</body>
+</html>`;
 };

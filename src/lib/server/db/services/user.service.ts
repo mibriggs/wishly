@@ -4,6 +4,9 @@ import { UserNotCreatedError } from '$lib/errors/user/user-not-created';
 import { db } from '..';
 import { userTable, type User } from '../schema';
 import { eq } from 'drizzle-orm';
+import { hashPassword } from '$lib/server/password';
+import { generateRandomRecoveryCode } from '$lib/server/user';
+import { encryptString } from '$lib/server/encryption';
 
 export class UserService {
 	constructor() {}
@@ -95,5 +98,37 @@ export class UserService {
 			.returning();
 
 		return getSingleObjectOrNull<User>(users);
+	}
+
+	/**
+	 * Checks if the provided email is available
+	 *
+	 * @param email The email to create the account with
+	 * @returns true if the email is available and false if not
+	 */
+	static async checkEmailAvailability(email: string) {
+		const users: User[] = await db.select().from(userTable).where(eq(userTable.email, email));
+		return users.length === 0;
+	}
+
+	static async createEmailUser(username: string, email: string, password: string) {
+		const passwordHash = await hashPassword(password);
+		const encryptedRecoveryCode = encryptString(generateRandomRecoveryCode());
+
+		const users: User[] = await db
+			.insert(userTable)
+			.values({
+				username,
+				email,
+				passwordHash,
+				isGuest: false,
+				recoveryCode: encryptedRecoveryCode
+			})
+			.returning();
+
+		if (users.length === 0) {
+			throw new UserNotCreatedError();
+		}
+		return users[0];
 	}
 }

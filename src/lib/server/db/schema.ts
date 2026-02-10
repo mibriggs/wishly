@@ -146,8 +146,32 @@ export const sharedWishlistTable = pgTable(
 	]
 );
 
+export const emailVerificationRequestTable = pgTable('email_verification_requests', {
+	id: uuid('id').defaultRandom().primaryKey().unique(),
+	userId: uuid('user_id')
+		.references(() => userTable.id)
+		.notNull(),
+	email: text('email').notNull(),
+	code: text('code').notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 })
+});
+
+export const passwordResetSessionTable = pgTable('password_reset_session', {
+	id: uuid('id').defaultRandom().primaryKey().unique(),
+	userId: uuid('user_id')
+		.references(() => userTable.id)
+		.notNull(),
+	email: text('email').notNull(),
+	code: text('code').notNull(),
+	emailVerified: boolean('email_verified').default(false).notNull(),
+	twoFactorVerified: boolean('two_factor_verified').default(false).notNull(),
+	expiresAt: timestamp('expires_at', { withTimezone: true, precision: 6 })
+});
+
 export type WishlistItem = InferSelectModel<typeof wishlistItemTable>;
 export type Wishlist = InferSelectModel<typeof wishlistTable>;
 export type Session = InferSelectModel<typeof sessionTable>;
 export type User = InferSelectModel<typeof userTable>;
 export type SharedWishlist = InferSelectModel<typeof sharedWishlistTable>;
+export type EmailVerifiationRequest = InferSelectModel<typeof emailVerificationRequestTable>;
+export type PasswordResetSession = InferSelectModel<typeof passwordResetSessionTable>;
